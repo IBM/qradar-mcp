@@ -6,7 +6,7 @@
   },
   "group_toggles": {
     "offense": true,
-    "ariel": false,
+    "ariel": true,
     "reference_data": true,
     "asset": true,
     "log_source": true,
@@ -17,11 +17,16 @@
     "forensics": true,
     "qvm": true
   },
-  "per_tool_toggles": {},
+  "per_tool_toggles": {
+    "CreateArielSearchTool": true,
+    "ValidateAQLTool": true,
+    "DeleteArielSearchTool": true,
+    "DeleteSavedSearchTool": true
+  },
   "resource_toggles": {
-    "aql_events_fields": false,
-    "aql_flows_fields": false,
-    "aql_functions": false,
-    "aql_generation_guide": false
+    "aql_events_fields": true,
+    "aql_flows_fields": true,
+    "aql_functions": true,
+    "aql_generation_guide": true
   }
 }
