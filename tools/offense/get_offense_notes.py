@@ -72,6 +72,11 @@ Returns an array of Note objects with id, create_time, username, and note_text."
     def http_verb(self) -> str:
         return "GET"
 
+    @property
+    def approval_required(self) -> bool:
+        """GET operation - does not require approval."""
+        return False
+
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the get_offense_notes tool.

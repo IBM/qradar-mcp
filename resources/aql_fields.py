@@ -50,7 +50,7 @@ class AQLEventsFieldsResource(MCPResource):
     def mime_type(self) -> str:
         return "application/json"
 
-    def read(self) -> Dict[str, Any]:
+    async def read(self) -> Dict[str, Any]:
         """
         Fetch events table fields from QRadar API.
 
@@ -59,7 +59,7 @@ class AQLEventsFieldsResource(MCPResource):
         """
         try:
             log_mcp("Fetching events fields from /ariel/databases/events", level='DEBUG')
-            response = self.rest_client.get('ariel/databases/events')
+            response = await self.rest_client.get('ariel/databases/events')
 
             if response.status_code != 200:
                 raise RuntimeError(
@@ -125,7 +125,7 @@ class AQLFlowsFieldsResource(MCPResource):
     def mime_type(self) -> str:
         return "application/json"
 
-    def read(self) -> Dict[str, Any]:
+    async def read(self) -> Dict[str, Any]:
         """
         Fetch flows table fields from QRadar API.
 
@@ -134,7 +134,7 @@ class AQLFlowsFieldsResource(MCPResource):
         """
         try:
             log_mcp("Fetching flows fields from /ariel/databases/flows", level='DEBUG')
-            response = self.rest_client.get('ariel/databases/flows')
+            response = await self.rest_client.get('ariel/databases/flows')
 
             if response.status_code != 200:
                 raise RuntimeError(

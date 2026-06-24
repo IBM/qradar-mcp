@@ -44,13 +44,23 @@ class ListLogSourcesTool(MCPTool):
 
 Log sources are the systems that send event data to QRadar for processing and analysis.
 
+Filterable Fields:
+  - id, name, description (text fields)
+  - type_id, protocol_type_id (numeric IDs)
+  - enabled, internal, gateway, auto_discovered (boolean)
+  - credibility (0-10)
+  - average_eps (numeric, events per second)
+  - last_event_time, creation_date, modified_date (epoch milliseconds)
+
 Examples:
   - List all log sources: (no parameters)
   - Filter by name: filter="name LIKE 'firewall%'"
   - Filter by type: filter="type_id=42"
   - Filter by enabled status: filter="enabled=true"
+  - Filter by credibility: filter="credibility >= 8"
   - Sort by name: sort="+name"
-  - Get first 20 sources: limit=20, offset=0"""
+  - Get first 20 sources: limit=20
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -78,6 +88,11 @@ Examples:
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def approval_required(self) -> bool:
+        """GET operation - does not require approval."""
+        return False
 
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """

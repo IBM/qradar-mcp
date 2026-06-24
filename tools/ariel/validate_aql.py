@@ -73,16 +73,7 @@ Validation prevents wasted searches and provides helpful error messages with sug
         query_expression = arguments.get('query_expression')
 
         if not query_expression:
-            return {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "Error: query_expression is required"
-                    }
-                ],
-                "isError": True
-            }
-
+            return self._create_error_response("Error: query_expression is required")
 
         # Call QRadar AQL validation endpoint with query parameters
         response = await self.client.post(
@@ -91,53 +82,82 @@ Validation prevents wasted searches and provides helpful error messages with sug
         )
 
         if response.status_code == 200:
-            # Query is valid
-            result = response.json()
-
-            # Check if there are any warnings
-            warnings = result.get('warnings', [])
-            warning_text = ""
-            if warnings:
-                warning_text = "\n\nWarnings:\n" + "\n".join(f"- {w}" for w in warnings)
-
-            return {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": f"✓ AQL query is valid{warning_text}\n\nQuery: {query_expression}"
-                    }
-                ]
-            }
+            return self._handle_success_response(response.json(), query_expression)
 
         if response.status_code == 422:
-            # Query has validation errors
-            error_data = response.json()
-            error_message = error_data.get('message', 'Unknown validation error')
-
-            # Extract detailed error information if available
-            details = error_data.get('details', {})
-            error_text = f"✗ AQL validation failed:\n\n{error_message}"
-
-            if details:
-                error_text += f"\n\nDetails: {details}"
-
-            return {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": f"{error_text}\n\nQuery: {query_expression}"
-                    }
-                ],
-                "isError": True
-            }
+            return self._handle_422_error(response.json(), query_expression)
 
         # Unexpected error
+        return self._create_error_response(
+            f"Error validating AQL query: {response.status_code} - {response.text}"
+        )
+
+    def _create_error_response(self, text: str) -> Dict[str, Any]:
+        """Create a standard error response."""
+        return {
+            "content": [{"type": "text", "text": text}],
+            "isError": True
+        }
+
+    def _handle_success_response(self, result: Dict[str, Any], query_expression: str) -> Dict[str, Any]:
+        """Handle successful validation response (status 200)."""
+        error_messages = result.get('error_messages', [])
+
+        if error_messages:
+            return self._handle_validation_errors(error_messages, query_expression)
+
+        # Query is valid - check for warnings
+        return self._create_success_response(result.get('warnings', []), query_expression)
+
+    def _handle_validation_errors(self, error_messages: list, query_expression: str) -> Dict[str, Any]:
+        """Handle validation errors from QRadar (200 status with error_messages)."""
+        error_details = [
+            f"[{error.get('severity', 'ERROR')}] {error.get('message', 'Unknown error')}"
+            for error in error_messages
+        ]
+
+        error_text = "✗ AQL validation failed:\n\n" + "\n\n".join(error_details)
+        guidance = self._get_recovery_guidance()
+
+        return self._create_error_response(
+            f"{error_text}\n\nQuery: {query_expression}{guidance}"
+        )
+
+    def _create_success_response(self, warnings: list, query_expression: str) -> Dict[str, Any]:
+        """Create a success response with optional warnings."""
+        warning_text = ""
+        if warnings:
+            warning_text = "\n\nWarnings:\n" + "\n".join(f"- {w}" for w in warnings)
+
         return {
             "content": [
                 {
                     "type": "text",
-                    "text": f"Error validating AQL query: {response.status_code} - {response.text}"
+                    "text": f"✓ AQL query is valid{warning_text}\n\nQuery: {query_expression}"
                 }
-                ],
-                "isError": True
-            }
+            ]
+        }
+
+    def _handle_422_error(self, error_data: Dict[str, Any], query_expression: str) -> Dict[str, Any]:
+        """Handle 422 validation error response."""
+        error_message = error_data.get('message', 'Unknown validation error')
+        error_text = f"✗ AQL validation failed:\n\n{error_message}"
+
+        details = error_data.get('details', {})
+        if details:
+            error_text += f"\n\nDetails: {details}"
+
+        return self._create_error_response(f"{error_text}\n\nQuery: {query_expression}")
+
+    @staticmethod
+    def _get_recovery_guidance() -> str:
+        """Get guidance text for LLM to recover from validation errors."""
+        return (
+            "\n\nNEXT STEPS:\n"
+            "1. Review the error messages above carefully\n"
+            "2. Refer to the AQL guide (qradar://aql/guide) you loaded earlier for syntax rules\n"
+            "3. Check the field and function names against the AQL field and functions resources you should have in context\n"
+            "4. Generate the query following the correct AQL construction steps\n"
+            "5. Validate the corrected query again before executing\n"
+            "\nIf you haven't loaded the AQL resources yet, do so now before regenerating the query.\n"
+        )

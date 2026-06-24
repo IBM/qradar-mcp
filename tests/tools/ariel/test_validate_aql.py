@@ -95,6 +95,41 @@ class TestValidateAQLExecution:
         assert 'Warning 2' in result['content'][0]['text']
 
     @pytest.mark.asyncio
+    async def test_execute_invalid_query_200_with_error_messages(self):
+        """Test executing with invalid query that returns 200 with error_messages."""
+        # Setup mock - QRadar returns 200 even with validation errors
+        tool = ValidateAQLTool()
+        mock_response = httpx.Response(
+            status_code=200,
+            json={
+                'error_messages': [
+                    {
+                        'severity': 'ERROR',
+                        'code': 28519,
+                        'contexts': ['INREFERENCESET', 'events'],
+                        'message': 'No function matches the given name: "INREFERENCESET" in catalog "events".'
+                    }
+                ]
+            },
+            request=httpx.Request("POST", "http://test")
+        )
+        tool.client = AsyncMock()
+        tool.client.post = AsyncMock(return_value=mock_response)
+
+        # Execute
+        result = await tool.execute({
+            'query_expression': 'SELECT sourceip FROM events WHERE INREFERENCESET(\'test\', sourceip)'
+        })
+
+        # Verify
+        assert result['content'][0]['type'] == 'text'
+        assert 'failed' in result['content'][0]['text'].lower()
+        assert 'INREFERENCESET' in result['content'][0]['text']
+        assert 'NEXT STEPS' in result['content'][0]['text']
+        assert 'AQL guide' in result['content'][0]['text']
+        assert result['isError'] is True
+
+    @pytest.mark.asyncio
     async def test_execute_invalid_query(self):
         """Test executing with an invalid AQL query."""
         # Setup mock

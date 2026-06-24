@@ -42,7 +42,7 @@ class AQLGenerationGuideResource(MCPResource):
     def mime_type(self) -> str:
         return "text/markdown"
 
-    def read(self) -> Dict[str, Any]:
+    async def read(self) -> Dict[str, Any]:
         """
         Return the AQL generation guide content.
 
@@ -126,15 +126,16 @@ LIMIT 20
 LAST 12 HOURS
 ```
 
-### Enriched Event Query
+### Enriched Event Query with Functions
 ```sql
 SELECT sourceip,
-       LOGSOURCENAME(logsourceid) AS source,
+       QIDNAME(qid) AS event_name,
+       LOGSOURCENAME(logsourceid) AS log_source,
        CATEGORYNAME(category) AS category,
        COUNT(*) AS count
 FROM events
 WHERE severity > 5
-GROUP BY sourceip, logsourceid, category
+GROUP BY sourceip, qid, logsourceid, category
 ORDER BY count DESC
 LIMIT 50
 LAST 6 HOURS
@@ -152,11 +153,17 @@ LAST 6 HOURS
 ## Functions Usage
 
 ### Data Retrieval Functions
+- `QIDNAME(qid)` - Get event name from event
 - `LOGSOURCENAME(logsourceid)` - Get log source name
 - `CATEGORYNAME(category)` - Get category name
 - `QIDDESCRIPTION(qid)` - Get QID description
 - `PROTOCOLNAME(protocolid)` - Get protocol name
 - `NETWORKNAME(sourceip)` - Get network name
+
+IMPORTANT: Many "name" fields don't exist directly - use functions instead:
+- NO "eventname" field → Use `QIDNAME(qid)`
+- NO "logsourcename" field → Use `LOGSOURCENAME(logsourceid)`
+- NO "categoryname" field → Use `CATEGORYNAME(category)`
 
 ### Aggregation Functions
 - `COUNT(*)` - Count rows
@@ -177,12 +184,7 @@ LAST 6 HOURS
 
 ## Error Recovery
 
-If validation fails:
-1. Read error message carefully
-2. Check field names against resources
-3. Verify syntax order
-4. Confirm time units are plural
-5. Regenerate and validate again
+If validation fails review the error message carefully and follow the instructions.
 """
 
         return {

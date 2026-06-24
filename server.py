@@ -173,8 +173,8 @@ def cleanup_httpx_client():
                 "Shared httpx.AsyncClient closed",
                 level='INFO'
             )
-        except RuntimeError:
-            # Logging may not be initialized in test environment
+        except (RuntimeError, ValueError, OSError):
+            # Logging may not be available during shutdown (test environment or normal shutdown)
             pass
 
     # Run the async cleanup
@@ -186,8 +186,8 @@ def cleanup_httpx_client():
                 f"Error during httpx client cleanup: {e}",
                 level='ERROR'
             )
-        except RuntimeError:
-            # Logging may not be initialized in test environment
+        except (RuntimeError, ValueError, OSError):
+            # Logging may not be available during shutdown (test environment or normal shutdown)
             pass
 
 
@@ -286,7 +286,7 @@ def register_resources():
         async def aql_events_fields() -> str:
             """AQL Events table field definitions"""
             resource = AQLEventsFieldsResource()
-            result = resource.read()
+            result = await resource.read()
             return result["contents"][0]["text"]
         registered_resources.append('aql_events_fields')
     else:
@@ -298,7 +298,7 @@ def register_resources():
         async def aql_flows_fields() -> str:
             """AQL Flows table field definitions"""
             resource = AQLFlowsFieldsResource()
-            result = resource.read()
+            result = await resource.read()
             return result["contents"][0]["text"]
         registered_resources.append('aql_flows_fields')
     else:
@@ -310,7 +310,7 @@ def register_resources():
         async def aql_functions() -> str:
             """AQL function reference"""
             resource = AQLFunctionsResource()
-            result = resource.read()
+            result = await resource.read()
             return result["contents"][0]["text"]
         registered_resources.append('aql_functions')
     else:
@@ -322,7 +322,7 @@ def register_resources():
         async def aql_generation_guide() -> str:
             """AQL query generation guide"""
             resource = AQLGenerationGuideResource()
-            result = resource.read()
+            result = await resource.read()
             return result["contents"][0]["text"]
         registered_resources.append('aql_generation_guide')
     else:
@@ -346,4 +346,4 @@ register_resources()
 if __name__ == "__main__":
     # For local development
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5002)
+    uvicorn.run(app, host="0.0.0.0", port=5000)

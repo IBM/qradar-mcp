@@ -221,6 +221,33 @@ class TestSanitizeIpAddress:
             with pytest.raises(ValueError, match="Invalid IP address"):
                 InputSanitizer.sanitize_ip_address(ip)
 
+    def test_sanitize_valid_ipv6(self):
+        """Test sanitizing valid IPv6 addresses"""
+        valid_ipv6 = [
+            "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+            "2001:db8:85a3::8a2e:370:7334",  # Compressed
+            "::1",  # Loopback
+            "::",  # All zeros
+            "fe80::1",  # Link-local
+            "::ffff:192.0.2.1",  # IPv4-mapped IPv6
+        ]
+        for ip in valid_ipv6:
+            result = InputSanitizer.sanitize_ip_address(ip)
+            # Result may be normalized (e.g., compressed form)
+            assert result is not None, f"Failed for IPv6: {ip}"
+
+    def test_sanitize_invalid_ipv6_format(self):
+        """Test that invalid IPv6 format raises error"""
+        invalid_ipv6 = [
+            "2001:0db8:85a3::8a2e:370g:7334",  # Invalid hex character 'g'
+            "2001:0db8:85a3::8a2e::7334",  # Double compression
+            "gggg::1",  # Invalid hex
+            "2001:db8:85a3:0:0:8a2e:370:7334:extra",  # Too many groups
+        ]
+        for ip in invalid_ipv6:
+            with pytest.raises(ValueError, match="Invalid IP address"):
+                InputSanitizer.sanitize_ip_address(ip)
+
 
 class TestSanitizeAqlQuery:
     """Test sanitize_aql_query method"""

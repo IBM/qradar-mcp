@@ -25,7 +25,7 @@ class ConcreteResource(MCPResource):
     def mime_type(self) -> str:
         return "application/json"
 
-    def read(self):
+    async def read(self):
         return {
             "contents": [
                 {
@@ -65,10 +65,11 @@ class TestMCPResource:
         resource = ConcreteResource()
         assert resource.mime_type == "application/json"
 
-    def test_concrete_implementation_can_read(self):
+    @pytest.mark.asyncio
+    async def test_concrete_implementation_can_read(self):
         """Test that concrete implementation can read."""
         resource = ConcreteResource()
-        result = resource.read()
+        result = await resource.read()
         assert "contents" in result
         assert len(result["contents"]) == 1
         assert result["contents"][0]["uri"] == "qradar://test/resource"

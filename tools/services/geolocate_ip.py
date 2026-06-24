@@ -35,6 +35,8 @@ class GeolocateIpTool(MCPTool):
     def description(self) -> str:
         return """Get geographic location data for an IP address using MaxMind GeoIP.
 
+IMPORTANT: Only PUBLIC IP addresses can be geolocated. Private/RFC1918 addresses will fail:
+
 Returns comprehensive location information including:
   - City, country, continent
   - Latitude/longitude coordinates
@@ -43,7 +45,7 @@ Returns comprehensive location information including:
   - Network details (ASN, domain)
 
 Use cases:
-  - Identify geographic origin of attacks
+  - Identify geographic origin of attacks from external IPs
   - Detect anomalous login locations
   - Map threat actor infrastructure
   - Enrich offense data with location context
@@ -63,6 +65,11 @@ Note: Data sourced from MaxMind GeoIP2 database maintained by QRadar."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def approval_required(self) -> bool:
+        """GET operation - does not require approval."""
+        return False
 
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
