@@ -31,10 +31,11 @@ class TestAQLGenerationGuideResource:
         resource = AQLGenerationGuideResource()
         assert resource.mime_type == "text/markdown"
 
-    def test_read_returns_guide_content(self):
+    @pytest.mark.asyncio
+    async def test_read_returns_guide_content(self):
         """Test that read returns guide content."""
         resource = AQLGenerationGuideResource()
-        result = resource.read()
+        result = await resource.read()
 
         # Verify result structure
         assert 'contents' in result
@@ -44,10 +45,11 @@ class TestAQLGenerationGuideResource:
         assert content['mimeType'] == "text/markdown"
         assert 'text' in content
 
-    def test_guide_content_has_mandatory_workflow(self):
+    @pytest.mark.asyncio
+    async def test_guide_content_has_mandatory_workflow(self):
         """Test that guide content includes mandatory workflow."""
         resource = AQLGenerationGuideResource()
-        result = resource.read()
+        result = await resource.read()
         guide_text = result['contents'][0]['text']
 
         assert "MANDATORY Workflow" in guide_text
@@ -56,20 +58,22 @@ class TestAQLGenerationGuideResource:
         assert "Generate Query" in guide_text
         assert "Validate Before Execution" in guide_text
 
-    def test_guide_content_has_field_resources(self):
+    @pytest.mark.asyncio
+    async def test_guide_content_has_field_resources(self):
         """Test that guide content references field resources."""
         resource = AQLGenerationGuideResource()
-        result = resource.read()
+        result = await resource.read()
         guide_text = result['contents'][0]['text']
 
         assert "qradar://aql/fields/events" in guide_text
         assert "qradar://aql/fields/flows" in guide_text
         assert "qradar://aql/functions" in guide_text
 
-    def test_guide_content_has_syntax_rules(self):
+    @pytest.mark.asyncio
+    async def test_guide_content_has_syntax_rules(self):
         """Test that guide content includes syntax rules."""
         resource = AQLGenerationGuideResource()
-        result = resource.read()
+        result = await resource.read()
         guide_text = result['contents'][0]['text']
 
         assert "SELECT" in guide_text
@@ -80,10 +84,11 @@ class TestAQLGenerationGuideResource:
         assert "LIMIT" in guide_text
         assert "LAST" in guide_text
 
-    def test_guide_content_has_common_patterns(self):
+    @pytest.mark.asyncio
+    async def test_guide_content_has_common_patterns(self):
         """Test that guide content includes common query patterns."""
         resource = AQLGenerationGuideResource()
-        result = resource.read()
+        result = await resource.read()
         guide_text = result['contents'][0]['text']
 
         assert "Common Patterns" in guide_text
@@ -91,10 +96,11 @@ class TestAQLGenerationGuideResource:
         assert "Top Source IPs" in guide_text
         assert "Network Traffic" in guide_text
 
-    def test_guide_content_has_functions_usage(self):
+    @pytest.mark.asyncio
+    async def test_guide_content_has_functions_usage(self):
         """Test that guide content includes functions usage."""
         resource = AQLGenerationGuideResource()
-        result = resource.read()
+        result = await resource.read()
         guide_text = result['contents'][0]['text']
 
         assert "Functions Usage" in guide_text
@@ -103,10 +109,11 @@ class TestAQLGenerationGuideResource:
         assert "COUNT" in guide_text
         assert "UNIQUECOUNT" in guide_text
 
-    def test_guide_content_has_common_errors(self):
+    @pytest.mark.asyncio
+    async def test_guide_content_has_common_errors(self):
         """Test that guide content includes common errors."""
         resource = AQLGenerationGuideResource()
-        result = resource.read()
+        result = await resource.read()
         guide_text = result['contents'][0]['text']
 
         assert "Common Errors" in guide_text
@@ -114,48 +121,53 @@ class TestAQLGenerationGuideResource:
         assert "Missing FROM clause" in guide_text
         assert "Singular time units" in guide_text
 
-    def test_guide_content_has_best_practices(self):
+    @pytest.mark.asyncio
+    async def test_guide_content_has_best_practices(self):
         """Test that guide content includes best practices."""
         resource = AQLGenerationGuideResource()
-        result = resource.read()
+        result = await resource.read()
         guide_text = result['contents'][0]['text']
 
         assert "Best Practices" in guide_text
         assert "Validate first" in guide_text
         assert "Read resources" in guide_text
 
-    def test_guide_content_has_error_recovery(self):
+    @pytest.mark.asyncio
+    async def test_guide_content_has_error_recovery(self):
         """Test that guide content includes error recovery."""
         resource = AQLGenerationGuideResource()
-        result = resource.read()
+        result = await resource.read()
         guide_text = result['contents'][0]['text']
 
         assert "Error Recovery" in guide_text
         assert "validation fails" in guide_text
 
-    def test_guide_content_has_validate_aql_example(self):
+    @pytest.mark.asyncio
+    async def test_guide_content_has_validate_aql_example(self):
         """Test that guide content includes validate_aql tool example."""
         resource = AQLGenerationGuideResource()
-        result = resource.read()
+        result = await resource.read()
         guide_text = result['contents'][0]['text']
 
         assert "validate_aql" in guide_text
         assert "query_expression" in guide_text
 
-    def test_guide_content_has_time_unit_guidance(self):
+    @pytest.mark.asyncio
+    async def test_guide_content_has_time_unit_guidance(self):
         """Test that guide content includes time unit guidance."""
         resource = AQLGenerationGuideResource()
-        result = resource.read()
+        result = await resource.read()
         guide_text = result['contents'][0]['text']
 
         assert "HOURS" in guide_text
         assert "MINUTES" in guide_text
         assert "PLURAL time units" in guide_text
 
-    def test_guide_content_markdown_format(self):
+    @pytest.mark.asyncio
+    async def test_guide_content_markdown_format(self):
         """Test that guide content is in markdown format."""
         resource = AQLGenerationGuideResource()
-        result = resource.read()
+        result = await resource.read()
         guide_text = result['contents'][0]['text']
 
         # Check for markdown headers
@@ -166,11 +178,12 @@ class TestAQLGenerationGuideResource:
         # Check for code blocks
         assert "```" in guide_text
 
-    def test_read_is_idempotent(self):
+    @pytest.mark.asyncio
+    async def test_read_is_idempotent(self):
         """Test that multiple reads return the same content."""
         resource = AQLGenerationGuideResource()
-        result1 = resource.read()
-        result2 = resource.read()
+        result1 = await resource.read()
+        result2 = await resource.read()
 
         assert result1 == result2
         assert result1['contents'][0]['text'] == result2['contents'][0]['text']

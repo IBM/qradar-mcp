@@ -49,6 +49,11 @@ class GetOffenseTool(MCPTool):
     def http_verb(self) -> str:
         return "GET"
 
+    @property
+    def approval_required(self) -> bool:
+        """GET operation - does not require approval."""
+        return False
+
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the get_offense tool.

@@ -168,8 +168,13 @@ def register_mcp_tool_with_fastmcp(mcp: FastMCP, tool: MCPTool) -> None:
     annotations["return"] = str
     tool_wrapper.__annotations__ = annotations
 
+    # Create metadata with approval_required
+    meta = {
+        "approval_required": tool.approval_required
+    }
+
     # Register with FastMCP
-    mcp.tool()(tool_wrapper)
+    mcp.tool(meta=meta)(tool_wrapper)
 
 
 def register_all_tools(mcp: FastMCP, toggle_manager, qradar_client) -> tuple:  # pylint: disable=too-many-locals,too-many-statements
@@ -260,6 +265,20 @@ def register_all_tools(mcp: FastMCP, toggle_manager, qradar_client) -> tuple:  #
     from .qvm.list_vulnerabilities import ListVulnerabilitiesTool
     from .qvm.list_qvm_assets import ListQvmAssetsTool
 
+    from .data_classification.list_dsm_event_mappings import ListDsmEventMappingsTool
+    from .data_classification.get_dsm_event_mapping import GetDsmEventMappingTool
+    from .data_classification.create_dsm_event_mapping import CreateDsmEventMappingTool
+    from .data_classification.update_dsm_event_mapping import UpdateDsmEventMappingTool
+    from .data_classification.list_high_level_categories import ListHighLevelCategoriesTool
+    from .data_classification.get_high_level_category import GetHighLevelCategoryTool
+    from .data_classification.list_low_level_categories import ListLowLevelCategoriesTool
+    from .data_classification.get_low_level_category import GetLowLevelCategoryTool
+    from .data_classification.list_qid_records import ListQidRecordsTool
+    from .data_classification.get_qid_record import GetQidRecordTool
+    from .data_classification.create_qid_record import CreateQidRecordTool
+    from .data_classification.update_qid_record import UpdateQidRecordTool
+    from .data_classification.get_qid_record_by_qid import GetQidRecordByQidTool
+
     MCPTool.set_qradar_client(qradar_client)
 
     # Register all tools using adapter
@@ -349,6 +368,21 @@ def register_all_tools(mcp: FastMCP, toggle_manager, qradar_client) -> tuple:  #
         # QVM vulnerability management (2)
         ListVulnerabilitiesTool(),
         ListQvmAssetsTool(),
+
+        # Data classification tools (12)
+        ListDsmEventMappingsTool(),
+        GetDsmEventMappingTool(),
+        CreateDsmEventMappingTool(),
+        UpdateDsmEventMappingTool(),
+        ListHighLevelCategoriesTool(),
+        GetHighLevelCategoryTool(),
+        ListLowLevelCategoriesTool(),
+        GetLowLevelCategoryTool(),
+        ListQidRecordsTool(),
+        GetQidRecordTool(),
+        CreateQidRecordTool(),
+        UpdateQidRecordTool(),
+        GetQidRecordByQidTool(),
     ]
 
     # Filter tools based on feature toggles

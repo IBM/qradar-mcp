@@ -217,6 +217,70 @@ class TestAdapterRegistration:
 
         # The wrapper function should have the same description
         assert "offense" in tool.description.lower()
+    @patch('qradar_mcp.tools.fastmcp_adapter.FastMCP')
+    def test_get_tool_approval_required_false(self, mock_fastmcp):
+        """Test that GET tools have approval_required=False in metadata."""
+        # Create mock FastMCP instance
+        mcp = Mock()
+        mock_tool_decorator = Mock()
+        mcp.tool.return_value = mock_tool_decorator
+
+        # Create a GET tool instance
+        tool = GetOffenseTool()
+        
+        # Verify the tool has approval_required=False
+        assert tool.approval_required is False
+
+        # Register the tool
+        register_mcp_tool_with_fastmcp(mcp, tool)
+
+        # Verify mcp.tool was called with meta containing approval_required=False
+        mcp.tool.assert_called_once()
+        call_args = mcp.tool.call_args
+        assert call_args is not None
+        assert 'meta' in call_args.kwargs
+        assert call_args.kwargs['meta']['approval_required'] is False
+
+    @patch('qradar_mcp.tools.fastmcp_adapter.FastMCP')
+    def test_non_get_tool_approval_required_true(self, mock_fastmcp):
+        """Test that non-GET tools have approval_required=True in metadata."""
+        # Create mock FastMCP instance
+        mcp = Mock()
+        mock_tool_decorator = Mock()
+        mcp.tool.return_value = mock_tool_decorator
+
+        # Create a non-GET tool instance (ValidateAQLTool is POST)
+        tool = ValidateAQLTool()
+        
+        # Verify the tool has approval_required=True (default)
+        assert tool.approval_required is True
+
+        # Register the tool
+        register_mcp_tool_with_fastmcp(mcp, tool)
+
+        # Verify mcp.tool was called with meta containing approval_required=True
+        mcp.tool.assert_called_once()
+        call_args = mcp.tool.call_args
+        assert call_args is not None
+        assert 'meta' in call_args.kwargs
+        assert call_args.kwargs['meta']['approval_required'] is True
+
+    def test_base_tool_approval_required_default(self):
+        """Test that base MCPTool has approval_required=True by default."""
+        # Non-GET tools should have the default value of True
+        tool = ValidateAQLTool()
+        assert tool.approval_required is True
+
+    def test_get_tools_override_approval_required(self):
+        """Test that GET tools override approval_required to False."""
+        # GET tools should override to False
+        get_tool = GetOffenseTool()
+        assert get_tool.approval_required is False
+        
+        # Another GET tool
+        system_tool = GetSystemInfoTool()
+        assert system_tool.approval_required is False
+
 
 
 class TestToolExecution:
@@ -331,7 +395,8 @@ class TestRegisterAllTools:
                 "config": true,
                 "services": true,
                 "forensics": true,
-                "qvm": true
+                "qvm": true,
+                "data_classification": true
             },
             "per_tool_toggles": {}
         }""")
@@ -359,7 +424,8 @@ class TestRegisterAllTools:
                 "config": true,
                 "services": true,
                 "forensics": true,
-                "qvm": false
+                "qvm": false,
+                "data_classification": true
             },
             "per_tool_toggles": {
                 "GetOffenseTool": false
@@ -368,7 +434,7 @@ class TestRegisterAllTools:
         return FeatureToggleManager(str(config_file))
 
     def test_all_tools_registered_when_all_enabled(self, all_enabled_config):
-        """Test that all 60 tools are registered when all toggles are enabled."""
+        """Test that all 73 tools are registered when all toggles are enabled."""
         from qradar_mcp.tools.fastmcp_adapter import register_all_tools
 
         mock_mcp = Mock()
@@ -377,8 +443,8 @@ class TestRegisterAllTools:
 
         registered_tools, skipped_tools = register_all_tools(mock_mcp, all_enabled_config, mock_qradar_client)
 
-        # Should register all 60 tools
-        assert len(registered_tools) == 60
+        # Should register all 73 tools
+        assert len(registered_tools) == 73
         assert len(skipped_tools) == 0
 
     def test_returns_tuple(self, all_enabled_config):
@@ -409,7 +475,7 @@ class TestRegisterAllTools:
         # Should have some registered and some skipped
         assert len(registered_tools) > 0
         assert len(skipped_tools) > 0
-        assert len(registered_tools) + len(skipped_tools) == 60
+        assert len(registered_tools) + len(skipped_tools) == 73
 
     def test_delete_verb_disabled_skips_delete_tools(self, some_disabled_config):
         """Test that tools with DELETE verb are skipped when DELETE is disabled."""
@@ -481,8 +547,8 @@ class TestRegisterAllTools:
         # No overlap between registered and skipped
         assert len(registered_names & skipped_names) == 0
 
-        # All 60 tools accounted for
-        assert len(registered_names | skipped_names) == 60
+        # All 73 tools accounted for
+        assert len(registered_names | skipped_names) == 73
 
 
 if __name__ == "__main__":

@@ -141,6 +141,19 @@ class MCPTool(ABC):
         # Fallback for tools not in standard structure
         return "unknown"
 
+    @property
+    def approval_required(self) -> bool:
+        """
+        Indicates whether this tool requires user approval before execution.
+
+        By default, all tools require approval for safety. Tools that only
+        retrieve or list data (GET operations) should override this to return False.
+
+        Returns:
+            bool: True if approval is required (default), False otherwise
+        """
+        return True
+
     async def execute(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the tool with the given arguments.

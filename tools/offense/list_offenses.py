@@ -43,9 +43,26 @@ class ListOffensesTool(MCPTool):
     def description(self) -> str:
         return """List offenses from QRadar SIEM with optional filtering, sorting, and pagination.
 
+Filterable Fields:
+  The following fields support filtering:
+  - status (OPEN, CLOSED, HIDDEN)
+  - severity (numeric 1-10)
+  - magnitude (numeric)
+  - category_count, source_count, destination_count (numeric)
+  - start_time, last_updated_time (epoch milliseconds)
+  - assigned_to (username string)
+
+  NOT FILTERABLE: description, offense_type (use other fields instead)
+
+Severity and Magnitude Mapping:
+  - Low: 1-3
+  - Medium: 4-7
+  - High/Critical: 8-10
+
 Examples:
   - List all open offenses: filter="status='OPEN'"
-  - List high severity offenses: filter="severity > 7"
+  - List high/critical severity: filter="severity > 7"
+  - Open high-priority offenses: filter="status='OPEN' and severity > 7"
   - Sort by severity descending: sort="-severity"
   - Get first 50 offenses: limit=50, offset=0"""
 
@@ -75,6 +92,11 @@ Examples:
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def approval_required(self) -> bool:
+        """GET operation - does not require approval."""
+        return False
 
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """

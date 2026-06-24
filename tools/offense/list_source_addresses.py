@@ -44,15 +44,17 @@ Use cases:
   - Understand source network classifications
   - Track which sources target which destinations
 
-Each source address includes:
-  - Associated offense IDs
-  - Magnitude (calculated severity)
-  - Event/flow counts
-  - First and last seen timestamps
-  - Network classification
-  - Associated destination address IDs
-
-Use filtering to find specific sources (e.g., 'magnitude > 5' or 'source_ip = \"192.168.1.100\"')."""
+Filterable Fields:
+  - id (numeric source address ID)
+  - source_ip (IP address string, use = for exact match)
+  - magnitude (0-10)
+  - event_flow_count (numeric)
+  - first_event_flow_seen, last_event_flow_seen (in epoch milliseconds)
+  - network (text string)
+  - domain_id (numeric domain ID)
+  - offense_ids (array of offense IDs)
+  - local_destination_address_ids (array of destination IDs)
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -66,6 +68,11 @@ Use filtering to find specific sources (e.g., 'magnitude > 5' or 'source_ip = \"
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def approval_required(self) -> bool:
+        """GET operation - does not require approval."""
+        return False
 
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """

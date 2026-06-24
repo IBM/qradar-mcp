@@ -64,7 +64,7 @@ class MCPResource(ABC):
         """
 
     @abstractmethod
-    def read(self) -> Dict[str, Any]:
+    async def read(self) -> Dict[str, Any]:
         """
         Read and return the resource content.
 

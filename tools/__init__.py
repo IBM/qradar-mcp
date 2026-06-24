@@ -104,6 +104,19 @@ from .forensics.get_case import GetCaseTool
 from .qvm.list_vulnerabilities import ListVulnerabilitiesTool
 from .qvm.list_qvm_assets import ListQvmAssetsTool
 
+from .data_classification.list_dsm_event_mappings import ListDsmEventMappingsTool
+from .data_classification.get_dsm_event_mapping import GetDsmEventMappingTool
+from .data_classification.create_dsm_event_mapping import CreateDsmEventMappingTool
+from .data_classification.update_dsm_event_mapping import UpdateDsmEventMappingTool
+from .data_classification.list_high_level_categories import ListHighLevelCategoriesTool
+from .data_classification.get_high_level_category import GetHighLevelCategoryTool
+from .data_classification.list_low_level_categories import ListLowLevelCategoriesTool
+from .data_classification.get_low_level_category import GetLowLevelCategoryTool
+from .data_classification.list_qid_records import ListQidRecordsTool
+from .data_classification.get_qid_record import GetQidRecordTool
+from .data_classification.create_qid_record import CreateQidRecordTool
+from .data_classification.update_qid_record import UpdateQidRecordTool
+from .data_classification.get_qid_record_by_qid import GetQidRecordByQidTool
 
 
 # Export public API
@@ -171,4 +184,17 @@ __all__ = [
     'GetCaseTool',
     'ListVulnerabilitiesTool',
     'ListQvmAssetsTool',
+    'ListDsmEventMappingsTool',
+    'GetDsmEventMappingTool',
+    'CreateDsmEventMappingTool',
+    'UpdateDsmEventMappingTool',
+    'ListHighLevelCategoriesTool',
+    'GetHighLevelCategoryTool',
+    'ListLowLevelCategoriesTool',
+    'GetLowLevelCategoryTool',
+    'ListQidRecordsTool',
+    'GetQidRecordTool',
+    'CreateQidRecordTool',
+    'UpdateQidRecordTool',
+    'GetQidRecordByQidTool',
 ]

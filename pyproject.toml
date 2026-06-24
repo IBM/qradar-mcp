@@ -30,7 +30,7 @@ dev = [
 homepage = "https://github.com/IBM/qradar-mcp"
 
 [tool.setuptools]
-packages = ["qradar_mcp", "qradar_mcp.client", "qradar_mcp.tools", "qradar_mcp.tools.analytics", "qradar_mcp.tools.ariel", "qradar_mcp.tools.asset", "qradar_mcp.tools.config", "qradar_mcp.tools.forensics", "qradar_mcp.tools.log_source", "qradar_mcp.tools.offense", "qradar_mcp.tools.qvm", "qradar_mcp.tools.reference_data", "qradar_mcp.tools.services", "qradar_mcp.tools.system", "qradar_mcp.utils", "qradar_mcp.resources"]
+packages = ["qradar_mcp", "qradar_mcp.client", "qradar_mcp.tools", "qradar_mcp.tools.analytics", "qradar_mcp.tools.ariel", "qradar_mcp.tools.asset", "qradar_mcp.tools.config", "qradar_mcp.tools.data_classification", "qradar_mcp.tools.forensics", "qradar_mcp.tools.log_source", "qradar_mcp.tools.offense", "qradar_mcp.tools.qvm", "qradar_mcp.tools.reference_data", "qradar_mcp.tools.services", "qradar_mcp.tools.system", "qradar_mcp.utils", "qradar_mcp.resources"]
 package-dir = {"qradar_mcp" = "."}
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

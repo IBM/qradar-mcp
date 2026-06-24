@@ -50,7 +50,7 @@ class AQLFunctionsResource(MCPResource):
     def mime_type(self) -> str:
         return "application/json"
 
-    def read(self) -> Dict[str, Any]:
+    async def read(self) -> Dict[str, Any]:
         """
         Fetch AQL functions from QRadar API.
 
@@ -59,7 +59,7 @@ class AQLFunctionsResource(MCPResource):
         """
         try:
             log_mcp("Fetching AQL functions from /ariel/functions", level='DEBUG')
-            response = self.rest_client.get('ariel/functions')
+            response = await self.rest_client.get('ariel/functions')
 
             if response.status_code != 200:
                 raise RuntimeError(

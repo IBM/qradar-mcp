@@ -20,6 +20,7 @@ Provides centralized input validation and sanitization for security.
 """
 
 import re
+import ipaddress
 from typing import Any, Optional
 from .mcp_logger import log_mcp
 
@@ -139,7 +140,7 @@ class InputSanitizer:
     @staticmethod
     def sanitize_ip_address(value: str) -> str:
         """
-        Sanitize and validate an IP address.
+        Sanitize and validate an IP address (IPv4 or IPv6).
 
         Args:
             value: IP address string
@@ -153,15 +154,13 @@ class InputSanitizer:
         if not value:
             raise ValueError("IP address cannot be empty")
 
-        # Basic IPv4 validation
-        if InputSanitizer.IP_PATTERN.match(value):
-            octets = value.split('.')
-            if all(0 <= int(octet) <= 255 for octet in octets):
-                return value
-
-        # TODO: Add IPv6 validation
-
-        raise ValueError(f"Invalid IP address: {value}")
+        # Use ipaddress module for comprehensive IPv4 and IPv6 validation
+        try:
+            # This validates both IPv4 and IPv6 addresses
+            ip_obj = ipaddress.ip_address(value)
+            return str(ip_obj)
+        except ValueError as e:
+            raise ValueError(f"Invalid IP address: {value}") from e
 
     @staticmethod
     def sanitize_aql_query(query: str) -> str:

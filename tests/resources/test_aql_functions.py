@@ -4,7 +4,7 @@ Tests for AQL Functions Resource
 
 import json
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, AsyncMock
 from qradar_mcp.resources.aql_functions import AQLFunctionsResource
 
 
@@ -34,7 +34,8 @@ class TestAQLFunctionsResource:
 
     @patch('qradar_mcp.resources.aql_functions.log_mcp')
     @patch('qradar_mcp.resources.aql_functions.QRadarRestClient')
-    def test_read_success_with_categorization(self, mock_client_class, mock_log_mcp):
+    @pytest.mark.asyncio
+    async def test_read_success_with_categorization(self, mock_client_class, mock_log_mcp):
         """Test successful read with function categorization."""
         mock_response = Mock()
         mock_response.status_code = 200
@@ -70,11 +71,11 @@ class TestAQLFunctionsResource:
         ]
 
         mock_client = Mock()
-        mock_client.get.return_value = mock_response
+        mock_client.get = AsyncMock(return_value=mock_response)
         mock_client_class.return_value = mock_client
 
         resource = AQLFunctionsResource()
-        result = resource.read()
+        result = await resource.read()
 
         # Verify API call
         mock_client.get.assert_called_once_with('ariel/functions')
@@ -116,7 +117,8 @@ class TestAQLFunctionsResource:
 
     @patch('qradar_mcp.resources.aql_functions.log_mcp')
     @patch('qradar_mcp.resources.aql_functions.QRadarRestClient')
-    def test_read_all_aggregation_functions(self, mock_client_class, mock_log_mcp):
+    @pytest.mark.asyncio
+    async def test_read_all_aggregation_functions(self, mock_client_class, mock_log_mcp):
         """Test that all standard aggregation functions are categorized correctly."""
         aggregation_funcs = ['AVG', 'MAX', 'MIN', 'SUM', 'COUNT', 'DISTINCTCOUNT',
                             'UNIQUECOUNT', 'FIRST', 'LAST']
@@ -135,11 +137,11 @@ class TestAQLFunctionsResource:
         ]
 
         mock_client = Mock()
-        mock_client.get.return_value = mock_response
+        mock_client.get = AsyncMock(return_value=mock_response)
         mock_client_class.return_value = mock_client
 
         resource = AQLFunctionsResource()
-        result = resource.read()
+        result = await resource.read()
 
         text_data = json.loads(result['contents'][0]['text'])
 
@@ -151,18 +153,19 @@ class TestAQLFunctionsResource:
 
     @patch('qradar_mcp.resources.aql_functions.log_mcp')
     @patch('qradar_mcp.resources.aql_functions.QRadarRestClient')
-    def test_read_empty_response(self, mock_client_class, mock_log_mcp):
+    @pytest.mark.asyncio
+    async def test_read_empty_response(self, mock_client_class, mock_log_mcp):
         """Test read when API returns empty list."""
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = []
 
         mock_client = Mock()
-        mock_client.get.return_value = mock_response
+        mock_client.get = AsyncMock(return_value=mock_response)
         mock_client_class.return_value = mock_client
 
         resource = AQLFunctionsResource()
-        result = resource.read()
+        result = await resource.read()
 
         text_data = json.loads(result['contents'][0]['text'])
         assert text_data['total_functions'] == 0
@@ -172,63 +175,67 @@ class TestAQLFunctionsResource:
 
     @patch('qradar_mcp.resources.aql_functions.log_mcp')
     @patch('qradar_mcp.resources.aql_functions.QRadarRestClient')
-    def test_read_api_error(self, mock_client_class, mock_log_mcp):
+    @pytest.mark.asyncio
+    async def test_read_api_error(self, mock_client_class, mock_log_mcp):
         """Test read when API returns error."""
         mock_response = Mock()
         mock_response.status_code = 500
         mock_response.text = "Internal Server Error"
 
         mock_client = Mock()
-        mock_client.get.return_value = mock_response
+        mock_client.get = AsyncMock(return_value=mock_response)
         mock_client_class.return_value = mock_client
 
         resource = AQLFunctionsResource()
 
         with pytest.raises(RuntimeError) as exc_info:
-            resource.read()
+            await resource.read()
 
         assert "Failed to fetch AQL functions" in str(exc_info.value)
         assert "500" in str(exc_info.value)
 
     @patch('qradar_mcp.resources.aql_functions.log_mcp')
     @patch('qradar_mcp.resources.aql_functions.QRadarRestClient')
-    def test_read_unauthorized(self, mock_client_class, mock_log_mcp):
+    @pytest.mark.asyncio
+    async def test_read_unauthorized(self, mock_client_class, mock_log_mcp):
         """Test read when API returns unauthorized."""
         mock_response = Mock()
         mock_response.status_code = 401
         mock_response.text = "Unauthorized"
 
         mock_client = Mock()
-        mock_client.get.return_value = mock_response
+        mock_client.get = AsyncMock(return_value=mock_response)
         mock_client_class.return_value = mock_client
 
         resource = AQLFunctionsResource()
 
         with pytest.raises(RuntimeError) as exc_info:
-            resource.read()
+            await resource.read()
 
         assert "Failed to fetch AQL functions" in str(exc_info.value)
         assert "401" in str(exc_info.value)
 
     @patch('qradar_mcp.resources.aql_functions.log_mcp')
     @patch('qradar_mcp.resources.aql_functions.QRadarRestClient')
-    def test_read_exception_handling(self, mock_client_class, mock_log_mcp):
+    @pytest.mark.asyncio
+    async def test_read_exception_handling(self, mock_client_class, mock_log_mcp):
         """Test read handles exceptions properly."""
         mock_client = Mock()
-        mock_client.get.side_effect = Exception("Connection timeout")
+        mock_client.get = AsyncMock(side_effect=Exception("Connection timeout"))
         mock_client_class.return_value = mock_client
 
         resource = AQLFunctionsResource()
 
         with pytest.raises(Exception) as exc_info:
-            resource.read()
+            await resource.read()
 
         assert "Connection timeout" in str(exc_info.value)
         mock_log_mcp.assert_called()
 
     @patch('qradar_mcp.resources.aql_functions.log_mcp')
     @patch('qradar_mcp.resources.aql_functions.QRadarRestClient')
-    def test_read_mixed_case_aggregation_functions(self, mock_client_class, mock_log_mcp):
+    @pytest.mark.asyncio
+    async def test_read_mixed_case_aggregation_functions(self, mock_client_class, mock_log_mcp):
         """Test that aggregation functions are matched case-insensitively."""
         mock_response = Mock()
         mock_response.status_code = 200
@@ -250,11 +257,11 @@ class TestAQLFunctionsResource:
         ]
 
         mock_client = Mock()
-        mock_client.get.return_value = mock_response
+        mock_client.get = AsyncMock(return_value=mock_response)
         mock_client_class.return_value = mock_client
 
         resource = AQLFunctionsResource()
-        result = resource.read()
+        result = await resource.read()
 
         text_data = json.loads(result['contents'][0]['text'])
 
