@@ -22,6 +22,7 @@ Retrieves MaxMind GeoIP location data for IP addresses.
 from typing import Dict, Any
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class GeolocateIpTool(MCPTool):
@@ -67,6 +68,10 @@ Note: Data sourced from MaxMind GeoIP2 database maintained by QRadar."""
         return "GET"
 
     @property
+    def endpoint(self) -> str:
+        return endpoints.SERVICES_GEOLOCATIONS
+
+    @property
     def approval_required(self) -> bool:
         """GET operation - does not require approval."""
         return False
@@ -96,7 +101,7 @@ Note: Data sourced from MaxMind GeoIP2 database maintained by QRadar."""
             params["fields"] = arguments["fields"]
 
         # Make API request
-        response = await self.client.get('/services/geolocations', params=params)
+        response = await self.client.get(self.endpoint, params=params)
         response.raise_for_status()
 
         data = response.json()

@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class GetOffenseTool(MCPTool):
@@ -50,6 +51,10 @@ class GetOffenseTool(MCPTool):
         return "GET"
 
     @property
+    def endpoint(self) -> str:
+        return endpoints.SIEM_OFFENSE
+
+    @property
     def approval_required(self) -> bool:
         """GET operation - does not require approval."""
         return False
@@ -69,7 +74,7 @@ class GetOffenseTool(MCPTool):
         if offense_id is None:
             return self.create_error_response("Error: offense_id is required")
 
-        response = await self.client.get(f'/siem/offenses/{int(offense_id)}')
+        response = await self.client.get(self.endpoint.format(offense_id=int(offense_id)))
         response.raise_for_status()
 
         offense_data = response.json()

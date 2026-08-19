@@ -109,7 +109,7 @@ class TestGetCaseToolExecution:
 
         # Verify client was called correctly
         tool.client.get.assert_called_once_with(
-            '/forensics/case_management/cases/123',
+            'forensics/case_management/cases/123',
             params={}
         )
 
@@ -138,7 +138,7 @@ class TestGetCaseToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/forensics/case_management/cases/123',
+            'forensics/case_management/cases/123',
             params={"fields": "id,name"}
         )
 

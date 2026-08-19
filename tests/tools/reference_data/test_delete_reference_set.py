@@ -71,7 +71,7 @@ class TestDeleteReferenceSetToolExecution:
         assert result["content"][0]["type"] == "text"
         assert "deleted successfully" in result["content"][0]["text"]
         assert "123" in result["content"][0]["text"]
-        delete_reference_set_tool.client.delete.assert_called_once_with('/reference_data_collections/sets/123')
+        delete_reference_set_tool.client.delete.assert_called_once_with('reference_data_collections/sets/123')
 
     @pytest.mark.asyncio
     async def test_delete_with_zero_id(self, delete_reference_set_tool):
@@ -87,7 +87,7 @@ class TestDeleteReferenceSetToolExecution:
 
         assert result["content"][0]["type"] == "text"
         assert "deleted successfully" in result["content"][0]["text"]
-        delete_reference_set_tool.client.delete.assert_called_once_with('/reference_data_collections/sets/0')
+        delete_reference_set_tool.client.delete.assert_called_once_with('reference_data_collections/sets/0')
 
     @pytest.mark.asyncio
     async def test_delete_with_large_id(self, delete_reference_set_tool):
@@ -103,7 +103,7 @@ class TestDeleteReferenceSetToolExecution:
 
         assert result["content"][0]["type"] == "text"
         assert "deleted successfully" in result["content"][0]["text"]
-        delete_reference_set_tool.client.delete.assert_called_once_with('/reference_data_collections/sets/999999')
+        delete_reference_set_tool.client.delete.assert_called_once_with('reference_data_collections/sets/999999')
 
 
 class TestDeleteReferenceSetToolValidation:

@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 from qradar_mcp.utils.parameters import (
     build_query_params,
     parse_range_from_limit_offset,
@@ -44,34 +45,30 @@ class ListDsmEventMappingsTool(MCPTool):
 DSM event mappings link raw log source event identifiers to QID records, enabling
 QRadar to classify and categorize incoming events.
 
-Each DSM event mapping contains:
-  - id: The mapping ID
-  - log_source_type_id: The log source type this mapping is associated with
-  - log_source_event_id: The primary event identifier parsed from the raw event
-  - log_source_event_category: The secondary event identifier parsed from the raw event
-  - custom_event: Whether this is a user-provided mapping (true) or system-provided (false)
-  - qid_record_id: The QID record this mapping resolves to
-  - uuid: The UUID of the mapping
+=== FIELDS REFERENCE ===
 
-Examples:
-  - List all mappings: (no parameters)
-  - Filter by log source type: filter="log_source_type_id=123"
-  - Filter by custom events: filter="custom_event=true"
-  - Filter by QID record: filter="qid_record_id=64280"
-  - Get first 50 mappings: limit=50, offset=0"""
+custom_event: Boolean
+id: Number
+log_source_event_category: String
+log_source_event_id: String
+log_source_type_id: Number
+qid_record_id: Number
+uuid: String
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description('Optional filter expression. Examples: "log_source_type_id=123", "custom_event=true"')
+                .description("Optional filter expression.")
             .string("fields")
-                .description('Comma-separated list of fields to return. Examples: "id,log_source_type_id,qid_record_id"')
+                .description("Optional comma-separated list of fields to return.")
             .integer("limit")
-                .description("Maximum number of mappings to return (default: 50, max: 10000)")
+                .description("Maximum number of mappings to return (default: 10, max: 10000)")
                 .minimum(1)
                 .maximum(10000)
-                .default(50)
+                .default(10)
             .integer("offset")
                 .description("Number of mappings to skip for pagination (default: 0)")
                 .minimum(0)
@@ -81,6 +78,10 @@ Examples:
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.DATA_CLASS_DSM_EVENT_MAPPINGS
 
     @property
     def approval_required(self) -> bool:
@@ -114,7 +115,7 @@ Examples:
         headers = build_headers(start=start, end=end)
 
         response = await self.client.get(
-            '/data_classification/dsm_event_mappings',
+            self.endpoint,
             params=params,
             headers=headers
         )

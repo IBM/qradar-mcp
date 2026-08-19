@@ -25,6 +25,7 @@ from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_query_params, build_headers, parse_range_from_limit_offset
 from qradar_mcp.utils.formatters import format_reference_sets_table
+from qradar_mcp.tools import endpoints
 
 
 class ListReferenceMaps(MCPTool):
@@ -36,28 +37,33 @@ class ListReferenceMaps(MCPTool):
 
     @property
     def description(self) -> str:
-        return """List reference data maps from QRadar SIEM with filtering, sorting, and pagination.
+        return """List reference data maps from QRadar SIEM with optional filtering, sorting, and pagination.
 
-Use cases:
-  - List all threat intelligence maps
-  - Filter maps by name pattern or element type
-  - Monitor map sizes and growth
-  - Find maps by namespace
+Reference maps store key-value data such as IP-to-country mappings, threat actor attributes, or IOC enrichment values.
 
-Reference maps store key-value pairs for threat intelligence and correlation.
-Common uses: IP-to-country mappings, threat actor profiles, IOC enrichment data.
+=== FIELDS REFERENCE ===
 
-Supports filtering, sorting, pagination, and field selection."""
+collection_id: Number
+creation_time: Number
+description: String
+element_type: String
+key_label: String
+name: String
+namespace: String
+number_of_elements: Number
+time_to_live: String
+timeout_type: String
+value_label: String
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description("Optional AQL filter (e.g., \"name LIKE 'threat%'\", "
-                           "\"element_type='IP'\", \"number_of_elements > 100\")")
+                .description("Optional AQL-style filter expression.")
             .string("sort")
-                .description("Optional sort expression (e.g., \"+name\", \"-creation_time\", "
-                           "\"+element_type,-name\")")
+                .description("Optional sort expression.")
             .integer("limit")
                 .description("Maximum number of maps to return (default: 50, max: 10000)")
                 .minimum(1)
@@ -66,8 +72,7 @@ Supports filtering, sorting, pagination, and field selection."""
                 .description("Number of maps to skip for pagination (default: 0)")
                 .minimum(0)
             .string("fields")
-                .description("Optional comma-separated list of fields to return "
-                           "(e.g., \"name,element_type,number_of_elements\")")
+                .description("Optional comma-separated list of fields to return.")
             .boolean("format_output")
                 .description("Format output as human-readable table (default: false)")
                 .default(False)
@@ -76,6 +81,10 @@ Supports filtering, sorting, pagination, and field selection."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_MAPS
 
     @property
     def approval_required(self) -> bool:
@@ -99,7 +108,7 @@ Supports filtering, sorting, pagination, and field selection."""
 
         # Make API request
         response = await self.client.get(
-            '/reference_data/maps',
+            self.endpoint,
             headers=headers,
             params=params
         )

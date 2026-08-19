@@ -28,6 +28,7 @@ from qradar_mcp.utils.parameters import (
     build_headers,
     parse_range_from_limit_offset
 )
+from qradar_mcp.tools import endpoints
 
 
 class ListUsersTool(MCPTool):
@@ -41,25 +42,34 @@ class ListUsersTool(MCPTool):
     def description(self) -> str:
         return """List QRadar users with access control information.
 
-Retrieves deployed user accounts including username, email, role, security profile,
-tenant, and authentication settings. Access control applies: ADMIN users see all
-users, SAASADMIN users see non-admin users, other users see only themselves.
+Use this to review user accounts, roles, tenants, and authentication settings.
+Access control is applied: ADMIN users see all users, SAASADMIN users see
+non-admin users, and other users see only themselves.
 
-Use cases:
-  - User auditing and access reviews
-  - Compliance reporting and documentation
-  - Security analysis of authentication settings
-  - User management and role verification
-  - Identifying inactive or flagged users
+Sensitive fields such as passwords are always returned as null.
 
-Example:
-  list_users()
-  list_users(current_user=True)
-  list_users(filter='tenant_id=1', sort='+username')
-  list_users(fields="username,email,user_role_id", limit=50)
+=== FIELDS REFERENCE ===
 
-Note: Sensitive fields like passwords are always returned as null. Access control
-is enforced based on caller's capabilities (ADMIN, SAASADMIN, or regular user)."""
+allow_system_authentication_fallback: Boolean
+description: String
+display_theme: String
+email: String
+enable_popup_notifications: Boolean
+id: Number
+inactivity_timeout: Number
+local_only_account: Boolean
+locale_id: String
+notification_flag: String
+old_password: String
+password: String
+password_creation_time: Number
+security_profile_id: Number
+show_awf_default_dashboard: String
+tenant_id: Number
+user_role_id: Number
+username: String
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -69,9 +79,9 @@ is enforced based on caller's capabilities (ADMIN, SAASADMIN, or regular user)."
             .string("fields")
                 .description("Optional comma-separated list of fields to return")
             .string("filter")
-                .description("Optional filter expression (e.g., 'tenant_id=1')")
+                .description("Optional filter expression.")
             .string("sort")
-                .description("Optional sort expression (e.g., '+username,-email')")
+                .description("Optional sort expression.")
             .integer("limit")
                 .description("Maximum number of users to return (1-100)")
                 .minimum(1)
@@ -84,6 +94,10 @@ is enforced based on caller's capabilities (ADMIN, SAASADMIN, or regular user)."
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.CONFIG_ACCESS_USERS
 
     @property
     def approval_required(self) -> bool:
@@ -124,7 +138,7 @@ is enforced based on caller's capabilities (ADMIN, SAASADMIN, or regular user)."
             headers = build_headers(start=start, end=end)
 
         # Make API call
-        response = await self.client.get('/config/access/users', params=params, headers=headers)
+        response = await self.client.get(self.endpoint, params=params, headers=headers)
         response.raise_for_status()
 
         users = response.json()

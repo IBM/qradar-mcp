@@ -128,7 +128,7 @@ class TestCreateReferenceMapExecution:
         # Verify API call
         tool.client.post.assert_called_once()
         call_args = tool.client.post.call_args
-        assert call_args[0][0] == '/reference_data/maps'
+        assert call_args[0][0] == 'reference_data/maps'
 
     @pytest.mark.asyncio
     async def test_execute_with_all_optional_fields(self, sample_created_map):

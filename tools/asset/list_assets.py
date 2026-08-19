@@ -28,6 +28,7 @@ from qradar_mcp.utils.parameters import (
     build_headers,
     parse_range_from_limit_offset
 )
+from qradar_mcp.tools import endpoints
 
 
 class ListAssetsTool(MCPTool):
@@ -41,43 +42,75 @@ class ListAssetsTool(MCPTool):
     def description(self) -> str:
         return """List assets from QRadar asset model with optional filtering, sorting, and pagination.
 
-Use cases:
-  - Get asset inventory across the network
-  - Find assets by IP address, hostname, or properties
-  - Identify assets with vulnerabilities
-  - Search for assets by risk score
-  - Monitor asset discovery and profiling
+=== FIELDS REFERENCE ===
 
-Supports filtering on all fields including:
-  - id, domain_id, vulnerability_count, risk_score_sum
-  - interfaces(ip_addresses(value)) for IP filtering
-  - hostnames(name) for hostname filtering
-  - properties(name, value) for custom properties
-
-Examples:
-  - List all assets: (no filter)
-  - Find asset by IP: filter="interfaces(ip_addresses(value))='192.168.1.100'"
-  - High risk assets: filter="risk_score_sum > 50"
-  - Assets with vulnerabilities: filter="vulnerability_count > 0"
-  - Sort by risk: sort="-risk_score_sum"
-
-Note: Use fields parameter to request only necessary fields for better performance."""
+domain_id: Number
+hostnames: Array<Object>
+  hostnames(created): Number
+  hostnames(first_seen_profiler): Number
+  hostnames(first_seen_scanner): Number
+  hostnames(id): Number
+  hostnames(last_seen_profiler): Number
+  hostnames(last_seen_scanner): Number
+  hostnames(name): String
+  hostnames(type): String
+id: Number
+interfaces: Array<Object>
+  interfaces(created): Number
+  interfaces(first_seen_profiler): Number
+  interfaces(first_seen_scanner): Number
+  interfaces(id): Number
+  interfaces(ip_addresses): Array<Object>
+    interfaces(ip_addresses)(created): Number
+    interfaces(ip_addresses)(first_seen_profiler): Number
+    interfaces(ip_addresses)(first_seen_scanner): Number
+    interfaces(ip_addresses)(id): Number
+    interfaces(ip_addresses)(last_seen_profiler): Number
+    interfaces(ip_addresses)(last_seen_scanner): Number
+    interfaces(ip_addresses)(network_id): Number
+    interfaces(ip_addresses)(type): String
+    interfaces(ip_addresses)(value): String
+  interfaces(last_seen_profiler): Number
+  interfaces(last_seen_scanner): Number
+  interfaces(mac_address): String
+products: Array<Object>
+  products(first_seen_profiler): Number
+  products(first_seen_scanner): Number
+  products(id): Number
+  products(last_scanned_for): Number
+  products(last_seen_profiler): Number
+  products(last_seen_scanner): Number
+  products(name): String
+  products(product_variant_id): Number
+  products(vendor): String
+  products(version): String
+properties: Array<Object>
+  properties(id): Number
+  properties(last_reported): Number
+  properties(last_reported_by): String
+  properties(name): String
+  properties(type_id): Number
+  properties(value): String
+risk_score_sum: Number
+users: Array<Object>
+  users(first_seen_profiler): Number
+  users(first_seen_scanner): Number
+  users(id): Number
+  users(last_seen_profiler): Number
+  users(last_seen_scanner): Number
+  users(username): String
+vulnerability_count: Number
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description("Optional AQL-style filter expression. Examples: \"id=123\", "
-                           "\"interfaces(ip_addresses(value))='10.0.0.1'\", "
-                           "\"risk_score_sum > 50\"")
+                .description("Optional filter expression.")
             .string("fields")
-                .description("Optional comma-separated list of fields to return. "
-                           "Examples: \"id,hostnames,interfaces(ip_addresses)\", "
-                           "\"id,risk_score_sum,vulnerability_count\"")
+                .description("Optional comma-separated list of fields to return.")
             .string("sort")
-                .description("Optional sort expression. Use +field for ascending, -field for descending. "
-                           "Supports: id, domain_id, vulnerability_count, risk_score_sum. "
-                           "Examples: \"+id\", \"-risk_score_sum\"")
+                .description("Optional sort expression.")
             .integer("limit")
                 .description("Maximum number of assets to return (default: 50, max: 10000)")
                 .minimum(1)
@@ -93,6 +126,10 @@ Note: Use fields parameter to request only necessary fields for better performan
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.ASSET_MODEL_ASSETS
 
     @property
     def approval_required(self) -> bool:
@@ -127,7 +164,7 @@ Note: Use fields parameter to request only necessary fields for better performan
         start, end = parse_range_from_limit_offset(limit, offset)
         headers = build_headers(start=start, end=end)
 
-        response = await self.client.get('/asset_model/assets', params=params, headers=headers)
+        response = await self.client.get(self.endpoint, params=params, headers=headers)
         response.raise_for_status()
 
         assets = response.json()

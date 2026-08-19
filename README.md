@@ -26,26 +26,21 @@ qradar-mcp/
 
 - **FastMCP Framework**: Modern, async-first MCP server implementation with uvicorn (ASGI)
 - **MCP Protocol Compliance**: Full implementation of Model Context Protocol specification
-- **27 Tools (Phase 1)**: Read-only QRadar API coverage
-  - Offense Management (7 tools) - List and retrieve offense data
-  - Reference Data (6 tools) - Query reference sets, maps, and tables
+- **83 Tools**: Comprehensive QRadar API coverage across read and write operations
+  - Offense Management (12 tools) - List, retrieve, close, assign, and annotate offenses
+  - Reference Data (19 tools) - Create, query, update, and delete reference sets, maps, and tables
+  - Data Classification (13 tools) - Manage DSM event mappings, QID records, and categories
+  - Ariel Search (8 tools) - Execute AQL queries, poll status, retrieve results, and manage saved searches
+  - Config Management (9 tools) - Network hierarchy, staged networks, deploy, and user management
+  - Analytics (6 tools) - Retrieve rules, building blocks, and custom actions
+  - Log Sources (3 tools) - Query log source configurations and types
+  - Network Services (5 tools) - DNS lookup, WHOIS lookup, and IP geolocation
   - Asset Management (2 tools) - List assets and properties
-  - Log Sources (3 tools) - Query log source configurations
-  - Analytics Rules (6 tools) - Retrieve rules, building blocks, and custom actions
-  - System Administration (4 tools) - System info, servers, users, and roles
   - Forensics (2 tools) - Query forensics cases
   - QVM (2 tools) - Vulnerability and asset data
+  - System Administration (2 tools) - System info and server listing
+- **Dynamic Resources**: AQL field definitions, functions, generation guide, and API query syntax reference
 - **Dual Authentication**: Supports both user sessions and authorized service tokens
-
-**Phase 1 Release**: This initial release includes **27 read-only tools** focused on querying and retrieving QRadar data. Additional tools for data modification and advanced search capabilities will be rolled out in future releases.
-
-### Roadmap
-
-**Future Releases** will include:
-- **Write Operations**: Tools for creating, updating, and deleting QRadar data (POST/DELETE operations)
-- **Ariel Search**: Full AQL query execution and saved search management (8 additional tools)
-- **Network Services**: IP geolocation, DNS, and WHOIS lookups (5 additional tools)
-- **Enhanced Reference Data**: Create and modify reference sets, maps, and tables
 
 ## Deployment
 
@@ -217,7 +212,6 @@ Auth: Using authorized service token from config.json
 - All endpoints require authentication
 - Supports both user sessions and authorized service tokens
 
-
 ## Troubleshooting
 
 ### Common Issues
@@ -227,6 +221,11 @@ Auth: Using authorized service token from config.json
 - **SSL errors**: Set `verify_ssl: false` for testing
 - **Tool not found**: Ensure MCP server is properly initialized
 
+## IBM QRadar Investigation Assistant
+
+[IBM QRadar Investigation Assistant](https://www.ibm.com/docs/en/qradar-common?topic=apps-qradar-investigation-assistant-app) uses this QRadar SIEM MCP server to accelerate your SOC operations - out of the box.
+
+Download the IBM QRadar Investigation Assistant application extension from the IBM Application Exchange [here](https://apps.xforce.ibmcloud.com/extension/53ef188132188ec5682759efdcf23e9a)
 
 ## Community
 

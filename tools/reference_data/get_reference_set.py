@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class GetReferenceSetTool(MCPTool):
@@ -36,18 +37,8 @@ class GetReferenceSetTool(MCPTool):
     def description(self) -> str:
         return """Get reference set metadata by ID from QRadar SIEM.
 
-Use cases:
-  - View reference set details and configuration
-  - Check number of entries in a set
-  - Verify set properties (TTL, expiry type, namespace)
-  - Understand set type and usage
-
-Returns metadata including:
-  - Set ID, name, and description
-  - Entry type (IP, ALN, NUM, etc.)
-  - Number of entries
-  - TTL and expiry configuration
-  - Namespace and tenant information"""
+Returns the set name, description, entry type, entry count, TTL and
+expiry settings, and namespace details."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -64,6 +55,10 @@ Returns metadata including:
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_COLLECTIONS_SET
 
     @property
     def approval_required(self) -> bool:
@@ -90,7 +85,7 @@ Returns metadata including:
 
         # Make API request
         response = await self.client.get(
-            f'/reference_data_collections/sets/{set_id}',
+            self.endpoint.format(name=set_id),
             params=params
         )
 

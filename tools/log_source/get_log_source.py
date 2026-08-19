@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class GetLogSourceTool(MCPTool):
@@ -36,20 +37,8 @@ class GetLogSourceTool(MCPTool):
     def description(self) -> str:
         return """Get log source details by ID from QRadar SIEM.
 
-Use cases:
-  - View log source configuration and settings
-  - Check log source status and health
-  - Verify protocol parameters
-  - Review event collection statistics
-  - Understand log source type and capabilities
-
-Returns detailed information including:
-  - Basic info (ID, name, description)
-  - Type and protocol configuration
-  - Status and health metrics
-  - Event statistics (EPS, last event time)
-  - Deployment status
-  - Group memberships"""
+Returns configuration, type and protocol details, health and status
+fields, event collection statistics, and deployment information."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -65,6 +54,10 @@ Returns detailed information including:
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.CONFIG_LOG_SOURCE
 
     @property
     def approval_required(self) -> bool:
@@ -94,7 +87,7 @@ Returns detailed information including:
 
         # Make API request
         response = await self.client.get(
-            f'/config/event_sources/log_source_management/log_sources/{int(log_source_id)}',
+            self.endpoint.format(log_source_id=int(log_source_id)),
             params=params if params else None
         )
         response.raise_for_status()

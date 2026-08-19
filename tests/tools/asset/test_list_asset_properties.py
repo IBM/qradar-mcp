@@ -107,7 +107,7 @@ class TestListAssetPropertiesToolExecution:
         result = await tool.execute({})
 
         # Verify client was called correctly
-        tool.client.get.assert_called_once_with('/asset_model/properties', params={}, headers={})
+        tool.client.get.assert_called_once_with('asset_model/properties', params={}, headers={})
 
         # Verify MCP result structure
         assert "content" in result
@@ -134,7 +134,7 @@ class TestListAssetPropertiesToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/asset_model/properties',
+            'asset_model/properties',
             params={"filter": "name='Location'"},
             headers={}
         )
@@ -157,7 +157,7 @@ class TestListAssetPropertiesToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/asset_model/properties',
+            'asset_model/properties',
             params={"fields": "id,name"},
             headers={}
         )

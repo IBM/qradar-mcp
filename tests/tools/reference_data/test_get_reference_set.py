@@ -108,7 +108,7 @@ class TestGetReferenceSetExecution:
         # Verify API call
         tool.client.get.assert_called_once()
         call_args = tool.client.get.call_args
-        assert call_args[0][0] == '/reference_data_collections/sets/123'
+        assert call_args[0][0] == 'reference_data_collections/sets/123'
         assert call_args[1]["params"] == {}
 
     @pytest.mark.asyncio

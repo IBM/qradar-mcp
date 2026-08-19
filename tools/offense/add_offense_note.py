@@ -23,6 +23,7 @@ from typing import Dict, Any, Optional
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 from qradar_mcp.utils.validators import validate_offense_id, validate_note_text
 
 
@@ -64,6 +65,10 @@ The note will be timestamped and attributed to the current user."""
     @property
     def http_verb(self) -> str:
         return "POST"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.SIEM_OFFENSE_NOTES
 
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -130,7 +135,7 @@ The note will be timestamped and attributed to the current user."""
         Raises:
             RuntimeError: If the API request fails
         """
-        api_path = f"siem/offenses/{offense_id}/notes"
+        api_path = self.endpoint.format(offense_id=offense_id)
 
         # Build query parameters
         params = {"note_text": note_text}

@@ -92,7 +92,7 @@ class TestRemoveFromReferenceSetExecution:
 
         # Verify API call
         tool.client.delete.assert_called_once_with(
-            '/reference_data_collections/set_entries/456'
+            'reference_data_collections/set_entries/456'
         )
 
     @pytest.mark.asyncio
@@ -112,7 +112,7 @@ class TestRemoveFromReferenceSetExecution:
         # Verify
         assert "isError" not in result
         tool.client.delete.assert_called_once_with(
-            '/reference_data_collections/set_entries/0'
+            'reference_data_collections/set_entries/0'
         )
 
     @pytest.mark.asyncio
@@ -132,7 +132,7 @@ class TestRemoveFromReferenceSetExecution:
         # Verify
         assert "isError" not in result
         tool.client.delete.assert_called_once_with(
-            '/reference_data_collections/set_entries/999999'
+            'reference_data_collections/set_entries/999999'
         )
 
     @pytest.mark.asyncio
@@ -309,5 +309,5 @@ class TestRemoveFromReferenceSetIntegration:
 
         # Verify both calls were made
         assert tool.client.delete.call_count == 2
-        tool.client.delete.assert_any_call('/reference_data_collections/set_entries/100')
-        tool.client.delete.assert_any_call('/reference_data_collections/set_entries/200')
+        tool.client.delete.assert_any_call('reference_data_collections/set_entries/100')
+        tool.client.delete.assert_any_call('reference_data_collections/set_entries/200')

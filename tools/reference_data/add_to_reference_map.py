@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class AddToReferenceMap(MCPTool):
@@ -83,6 +84,10 @@ Note: If the key already exists, its value will be updated."""
     def http_verb(self) -> str:
         return "POST"
 
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_MAP
+
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the add_to_reference_map tool.
@@ -110,7 +115,7 @@ Note: If the key already exists, its value will be updated."""
 
         # Make API request
         response = await self.client.post(
-            f'/reference_data/maps/{name}',
+            self.endpoint.format(name=name),
             params=params
         )
         response.raise_for_status()

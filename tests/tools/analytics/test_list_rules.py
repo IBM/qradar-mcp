@@ -57,7 +57,7 @@ class TestListRulesMetadata:
         assert "required" not in schema or len(schema.get("required", [])) == 0
 
         # But these fields should exist in properties
-        optional_fields = ["filter", "fields", "sort", "limit", "offset", "format_output"]
+        optional_fields = ["filter", "fields", "limit", "offset", "format_output"]
         for field in optional_fields:
             assert field in schema["properties"]
 
@@ -127,7 +127,7 @@ class TestListRulesExecution:
         # Verify API call
         tool.client.get.assert_called_once()
         call_args = tool.client.get.call_args
-        assert call_args[0][0] == '/analytics/rules'
+        assert call_args[0][0] == 'analytics/rules'
 
     @pytest.mark.asyncio
     async def test_execute_with_filter(self, sample_rules):
@@ -151,29 +151,6 @@ class TestListRulesExecution:
         assert "isError" not in result
         call_args = tool.client.get.call_args
         assert call_args[1]['params']['filter'] == "enabled=true"
-
-    @pytest.mark.asyncio
-    async def test_execute_with_sort(self, sample_rules):
-        """Test execution with sort parameter."""
-        mock_request = httpx.Request("GET", "http://test.com")
-        mock_response = httpx.Response(
-            200,
-            json=sample_rules,
-            request=mock_request
-        )
-
-        tool = ListRulesTool()
-        tool.client = AsyncMock()
-        tool.client.get = AsyncMock(return_value=mock_response)
-
-        result = await tool.execute({
-            "sort": "+name"
-        })
-
-        # Verify
-        assert "isError" not in result
-        call_args = tool.client.get.call_args
-        assert call_args[1]['params']['sort'] == "+name"
 
     @pytest.mark.asyncio
     async def test_execute_with_fields(self, sample_rules):

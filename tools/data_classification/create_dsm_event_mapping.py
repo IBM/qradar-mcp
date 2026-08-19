@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class CreateDsmEventMappingTool(MCPTool):
@@ -52,7 +53,7 @@ log_source_event_id and log_source_event_category already exists."""
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .integer("log_source_type_id")
-                .description("The ID of the log source type this mapping is associated with")
+                .description("The ID of the log source type this mapping is associated with. Get this from list_log_source_types")
                 .minimum(0)
                 .required()
             .string("log_source_event_id")
@@ -62,7 +63,7 @@ log_source_event_id and log_source_event_category already exists."""
                 .description("The secondary identifying value parsed from an event")
                 .required()
             .integer("qid_record_id")
-                .description("The ID of the QID record to map matching events to")
+                .description("The ID of the QID record to map matching events to. Get this from list_qid_records, get_qid_record, or get_qid_record_by_qid")
                 .minimum(0)
                 .required()
             .string("fields")
@@ -72,6 +73,10 @@ log_source_event_id and log_source_event_category already exists."""
     @property
     def http_verb(self) -> str:
         return "POST"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.DATA_CLASS_DSM_EVENT_MAPPINGS
 
     @property
     def approval_required(self) -> bool:
@@ -116,7 +121,7 @@ log_source_event_id and log_source_event_category already exists."""
             headers["fields"] = fields
 
         response = await self.client.post(
-            '/data_classification/dsm_event_mappings',
+            self.endpoint,
             data=body,
             headers=headers if headers else None
         )

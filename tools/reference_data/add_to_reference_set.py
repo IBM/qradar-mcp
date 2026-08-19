@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class AddToReferenceSetTool(MCPTool):
@@ -65,6 +66,11 @@ it will be updated with the new timestamp and optional notes/source."""
     def http_verb(self) -> str:
         return "POST"
 
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_COLLECTIONS_SET_ENTRIES
+
+    _SETS_ENDPOINT = "reference_data_collections/sets"
 
     def _build_body(self, arguments: Dict[str, Any], set_id: int) -> Dict[str, Any]:
         """Build the request body for adding an entry."""
@@ -109,7 +115,7 @@ it will be updated with the new timestamp and optional notes/source."""
 
         # First, look up the reference set by name to get its ID
         list_response = await self.client.get(
-            '/reference_data_collections/sets',
+            self._SETS_ENDPOINT,
             params={"filter": f"name='{set_name}'"}
         )
         sets = list_response.json()
@@ -119,7 +125,7 @@ it will be updated with the new timestamp and optional notes/source."""
 
         # Add entry to the reference set
         response = await self.client.post(
-            '/reference_data_collections/set_entries',
+            self.endpoint,
             data=self._build_body(arguments, sets[0]["id"]),
             headers=self._build_headers(arguments)
         )

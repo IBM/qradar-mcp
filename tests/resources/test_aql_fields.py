@@ -14,7 +14,7 @@ class TestAQLEventsFieldsResource:
     def test_uri_property(self):
         """Test that uri property returns correct value."""
         resource = AQLEventsFieldsResource()
-        assert resource.uri == "qradar://aql/fields/events"
+        assert resource.uri == "qradar://aql/events/fields"
 
     def test_name_property(self):
         """Test that name property returns correct value."""
@@ -78,13 +78,15 @@ class TestAQLEventsFieldsResource:
         assert 'contents' in result
         assert len(result['contents']) == 1
         content = result['contents'][0]
-        assert content['uri'] == "qradar://aql/fields/events"
+        assert content['uri'] == "qradar://aql/events/fields"
         assert content['mimeType'] == "application/json"
 
         # Parse and verify JSON content
         text_data = json.loads(content['text'])
         assert text_data['table'] == 'events'
         assert text_data['field_count'] == 3
+        assert text_data['canonical_field_count'] == 3
+        assert len(text_data['canonical_fields']) == 3
         assert len(text_data['fields']) == 3
         assert text_data['fields'][0]['name'] == 'sourceip'
         assert text_data['fields'][1]['name'] == 'destinationip'
@@ -131,6 +133,8 @@ class TestAQLEventsFieldsResource:
         # Should handle missing columns gracefully
         text_data = json.loads(result['contents'][0]['text'])
         assert text_data['field_count'] == 0
+        assert text_data['canonical_field_count'] == 0
+        assert text_data['canonical_fields'] == []
         assert text_data['fields'] == []
 
     @patch('qradar_mcp.resources.aql_fields.log_mcp')
@@ -157,7 +161,7 @@ class TestAQLFlowsFieldsResource:
     def test_uri_property(self):
         """Test that uri property returns correct value."""
         resource = AQLFlowsFieldsResource()
-        assert resource.uri == "qradar://aql/fields/flows"
+        assert resource.uri == "qradar://aql/flows/fields"
 
     def test_name_property(self):
         """Test that name property returns correct value."""
@@ -212,12 +216,14 @@ class TestAQLFlowsFieldsResource:
         # Verify result structure
         assert 'contents' in result
         content = result['contents'][0]
-        assert content['uri'] == "qradar://aql/fields/flows"
+        assert content['uri'] == "qradar://aql/flows/fields"
 
         # Parse and verify JSON content
         text_data = json.loads(content['text'])
         assert text_data['table'] == 'flows'
         assert text_data['field_count'] == 2
+        assert text_data['canonical_field_count'] == 2
+        assert len(text_data['canonical_fields']) == 2
         assert len(text_data['fields']) == 2
 
     @patch('qradar_mcp.resources.aql_fields.log_mcp')

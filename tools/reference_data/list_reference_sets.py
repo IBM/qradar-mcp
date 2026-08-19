@@ -26,6 +26,7 @@ from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_query_params, build_headers, parse_range_from_limit_offset
 from qradar_mcp.utils.formatters import format_reference_sets_table
+from qradar_mcp.tools import endpoints
 
 
 class ListReferenceSets(MCPTool):
@@ -39,22 +40,33 @@ class ListReferenceSets(MCPTool):
     def description(self) -> str:
         return """List reference data sets from QRadar SIEM with optional filtering, sorting, and pagination.
 
-Reference sets store collections of unique values (IPs, domains, etc.) used for threat intelligence and correlation.
+Reference sets store collections of unique values such as IPs, domains, or hashes.
 
-Examples:
-  - List all sets: (no parameters)
-  - Filter by name: filter="name LIKE 'threat%'"
-  - Filter by entry type: filter="entry_type='IP'"
-  - Sort by creation time: sort="-creation_time"
-  - Get first 20 sets: limit=20, offset=0"""
+=== FIELDS REFERENCE ===
+
+creation_time: Number
+delete_entries: Boolean
+description: String
+entry_type: String
+expired_log_option: String
+expiry_type: String
+global_id: String
+id: Number
+name: String
+namespace: String
+number_of_entries: Number
+tenant_id: Number
+time_to_live: Number
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description("Optional AQL-style filter expression. Examples: \"name LIKE 'threat%'\", \"entry_type='IP'\", \"number_of_entries > 100\"")
+                .description("Optional AQL-style filter expression.")
             .string("sort")
-                .description("Optional sort expression. Use +field for ascending, -field for descending. Examples: \"+name\", \"-creation_time\", \"+entry_type,-name\"")
+                .description("Optional sort expression.")
             .integer("limit")
                 .description("Maximum number of sets to return (default: 50, max: 10000)")
                 .minimum(1)
@@ -63,7 +75,7 @@ Examples:
                 .description("Number of sets to skip for pagination (default: 0)")
                 .minimum(0)
             .string("fields")
-                .description("Comma-separated list of fields to include. Examples: \"id,name,entry_type\", \"id,name,number_of_entries,creation_time\"")
+                .description("Optional comma-separated list of fields to include.")
             .boolean("format_output")
                 .description("Format output as human-readable table (default: false)")
                 .default(False)
@@ -72,6 +84,10 @@ Examples:
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_COLLECTIONS_SETS
 
     @property
     def approval_required(self) -> bool:
@@ -95,7 +111,7 @@ Examples:
 
         # Make API request
         response = await self.client.get(
-            '/reference_data_collections/sets',
+            self.endpoint,
             headers=headers,
             params=params
         )

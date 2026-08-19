@@ -24,6 +24,7 @@ import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_query_params, build_headers, parse_range_from_limit_offset
+from qradar_mcp.tools import endpoints
 
 
 class GetReferenceMap(MCPTool):
@@ -37,19 +38,8 @@ class GetReferenceMap(MCPTool):
     def description(self) -> str:
         return """Get reference map metadata and data by name from QRadar SIEM.
 
-Use cases:
-  - View IP-to-country mappings
-  - Check threat actor attributes
-  - Retrieve IOC enrichment data
-  - Inspect map configuration and entries
-
-Returns metadata including:
-  - Map name, description, and configuration
-  - Element type (IP, ALN, NUM, PORT, ALNIC, DATE, CIDR)
-  - Key and value labels
-  - Number of elements and creation time
-  - TTL and expiry configuration
-  - Data entries (key-value pairs with timestamps)"""
+Returns map configuration, element type, key and value labels, element
+count, expiry settings, and stored key-value entries."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -78,6 +68,10 @@ Returns metadata including:
         return "GET"
 
     @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_MAP
+
+    @property
     def approval_required(self) -> bool:
         """GET operation - does not require approval."""
         return False
@@ -104,7 +98,7 @@ Returns metadata including:
 
         # Make API request
         response = await self.client.get(
-            f'/reference_data/maps/{name}',
+            self.endpoint.format(name=name),
             headers=headers,
             params=params
         )

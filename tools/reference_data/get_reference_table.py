@@ -24,6 +24,7 @@ import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_query_params, build_headers, parse_range_from_limit_offset
+from qradar_mcp.tools import endpoints
 
 
 class GetReferenceTable(MCPTool):
@@ -37,26 +38,8 @@ class GetReferenceTable(MCPTool):
     def description(self) -> str:
         return """Get reference table metadata and 2D data by name from QRadar SIEM.
 
-Use cases:
-  - View IP × Port service mappings
-  - Check user × asset access levels
-  - Retrieve multi-dimensional IOC data
-  - Inspect table configuration and entries
-
-Returns metadata including:
-  - Table name, description, and configuration
-  - Element type and key name types
-  - Number of elements and creation time
-  - TTL and expiry configuration
-  - Data entries (2D structure with outer/inner keys)
-
-Example data structure:
-  {
-    "192.168.1.1": {
-      "port_80": {"value": "HTTP", "first_seen": 123456789},
-      "port_443": {"value": "HTTPS", "first_seen": 123456789}
-    }
-  }"""
+Returns table configuration, element and key types, element count,
+expiry settings, and stored outer-key and inner-key data."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -85,6 +68,10 @@ Example data structure:
         return "GET"
 
     @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_TABLE
+
+    @property
     def approval_required(self) -> bool:
         """GET operation - does not require approval."""
         return False
@@ -110,7 +97,7 @@ Example data structure:
 
         # Make API request
         response = await self.client.get(
-            f'/reference_data/tables/{name}',
+            self.endpoint.format(name=name),
             headers=headers,
             params=params
         )

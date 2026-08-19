@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 from qradar_mcp.utils.parameters import (
     build_query_params,
     parse_range_from_limit_offset,
@@ -42,37 +43,20 @@ class ListQidRecordsTool(MCPTool):
         return """Retrieve a list of QID records from QRadar.
 
 QID (QRadar Identifier) records define event types in QRadar, mapping to categories
-and severity levels. Each event received by QRadar is resolved to a QID record.
-
-Each QID record contains:
-  - id: The QID record ID
-  - qid: The numeric QRadar Identifier
-  - name: The human-readable name of the event type
-  - description: A description of the event type
-  - severity: The severity level (0-10)
-  - low_level_category_id: The low level category this QID belongs to
-  - log_source_type_id: The log source type (null for most system QIDs)
-  - uuid: The UUID of the QID record
-
-Examples:
-  - List all QID records: (no parameters)
-  - Filter by name: filter="name LIKE '%portscan%'"
-  - Filter by severity: filter="severity>=7"
-  - Filter by category: filter="low_level_category_id=1008"
-  - Get first 100 records: limit=100, offset=0"""
+and severity levels. Each event received by QRadar is resolved to a QID record."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description('Optional filter expression. Examples: "severity>=7", "low_level_category_id=1008", "name LIKE \'%scan%\'"')
+                .description("Optional filter expression.")
             .string("fields")
-                .description('Comma-separated list of fields to return. Examples: "id,qid,name,severity", "id,name,low_level_category_id"')
+                .description("Optional comma-separated list of fields to return.")
             .integer("limit")
-                .description("Maximum number of QID records to return (default: 50, max: 10000)")
+                .description("Maximum number of QID records to return (default: 10, max: 10000)")
                 .minimum(1)
                 .maximum(10000)
-                .default(50)
+                .default(10)
             .integer("offset")
                 .description("Number of QID records to skip for pagination (default: 0)")
                 .minimum(0)
@@ -82,6 +66,10 @@ Examples:
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.DATA_CLASS_QID_RECORDS
 
     @property
     def approval_required(self) -> bool:
@@ -113,7 +101,7 @@ Examples:
         headers = build_headers(start=start, end=end)
 
         response = await self.client.get(
-            '/data_classification/qid_records',
+            self.endpoint,
             params=params,
             headers=headers
         )

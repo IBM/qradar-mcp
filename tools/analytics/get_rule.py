@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class GetRuleTool(MCPTool):
@@ -36,22 +37,8 @@ class GetRuleTool(MCPTool):
     def description(self) -> str:
         return """Get analytics rule details by ID from QRadar SIEM.
 
-Use cases:
-  - View rule configuration and properties
-  - Check rule status (enabled/disabled)
-  - Review rule capacity metrics
-  - Understand rule type and origin
-  - Verify rule identifiers and relationships
-
-Returns detailed information including:
-  - Rule ID, name, and description
-  - Type (EVENT, FLOW, COMMON, OFFENSE)
-  - Origin (SYSTEM, OVERRIDE, USER)
-  - Enabled status
-  - Owner information
-  - Capacity metrics (base, average, timestamp)
-  - Identifiers (rule ID, linked rule ID)
-  - Timestamps (creation, modification)"""
+Returns rule metadata, type and origin, enabled state, owner,
+capacity metrics, identifiers, and timestamps."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -67,6 +54,10 @@ Returns detailed information including:
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.ANALYTICS_RULE
 
     @property
     def approval_required(self) -> bool:
@@ -96,7 +87,7 @@ Returns detailed information including:
             params['fields'] = fields_str
 
         # Make API request
-        response = await self.client.get(f'/analytics/rules/{rule_id}', params=params)
+        response = await self.client.get(self.endpoint.format(rule_id=rule_id), params=params)
         response.raise_for_status()
 
         rule_data = response.json()

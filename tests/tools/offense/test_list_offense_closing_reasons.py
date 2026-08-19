@@ -35,7 +35,6 @@ class TestListOffenseClosingReasonsTool:
         """Test that tool has correct description."""
         tool = ListOffenseClosingReasonsTool()
         assert "List valid offense closing reasons" in tool.description
-        assert "CRITICAL" in tool.description
 
     def test_input_schema_structure(self):
         """Test that input schema has correct structure."""
@@ -105,7 +104,11 @@ class TestListOffenseClosingReasonsToolExecution:
         result = await tool.execute({})
 
         # Verify client was called correctly
-        tool.client.get.assert_called_once_with('/siem/offense_closing_reasons', params={})
+        tool.client.get.assert_called_once_with(
+            'siem/offense_closing_reasons',
+            params={},
+            headers={'Range': 'items=0-9'},
+        )
 
         # Verify MCP result structure
         assert "content" in result
@@ -133,8 +136,9 @@ class TestListOffenseClosingReasonsToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/siem/offense_closing_reasons',
-            params={"include_reserved": "true"}
+            'siem/offense_closing_reasons',
+            params={"include_reserved": "true"},
+            headers={'Range': 'items=0-9'},
         )
 
     @pytest.mark.asyncio
@@ -157,8 +161,9 @@ class TestListOffenseClosingReasonsToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/siem/offense_closing_reasons',
-            params={"include_deleted": "true"}
+            'siem/offense_closing_reasons',
+            params={"include_deleted": "true"},
+            headers={'Range': 'items=0-9'},
         )
 
     @pytest.mark.asyncio
@@ -181,8 +186,9 @@ class TestListOffenseClosingReasonsToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/siem/offense_closing_reasons',
-            params={"filter": "text='False-Positive, Tuned'"}
+            'siem/offense_closing_reasons',
+            params={"filter": "text='False-Positive, Tuned'"},
+            headers={'Range': 'items=0-9'},
         )
 
     @pytest.mark.asyncio
@@ -205,8 +211,9 @@ class TestListOffenseClosingReasonsToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/siem/offense_closing_reasons',
-            params={"fields": "id,text"}
+            'siem/offense_closing_reasons',
+            params={"fields": "id,text"},
+            headers={'Range': 'items=0-9'},
         )
 
     @pytest.mark.asyncio
@@ -234,13 +241,14 @@ class TestListOffenseClosingReasonsToolExecution:
 
         # Verify client was called with all params
         tool.client.get.assert_called_once_with(
-            '/siem/offense_closing_reasons',
+            'siem/offense_closing_reasons',
             params={
                 "include_reserved": "true",
                 "include_deleted": "true",
                 "filter": "is_reserved=false",
-                "fields": "id,text,is_reserved"
-            }
+                "fields": "id,text,is_reserved",
+            },
+            headers={'Range': 'items=0-9'},
         )
 
     @pytest.mark.asyncio

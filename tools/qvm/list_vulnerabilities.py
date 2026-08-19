@@ -24,6 +24,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class ListVulnerabilitiesTool(MCPTool):
@@ -35,7 +36,7 @@ class ListVulnerabilitiesTool(MCPTool):
 
     @property
     def description(self) -> str:
-        return """List vulnerabilities discovered by QRadar Vulnerability Manager.
+        return """List vulnerabilities discovered by QRadar Vulnerability Manager (QVM).
 
 Returns vulnerability data from QVM scans, including:
   - Vulnerability details and severity
@@ -50,11 +51,9 @@ Use cases:
   - Patch management support
   - Compliance reporting
 
-Requirements:
-  - QVM (QRadar Vulnerability Manager) module
-  - QVM license active
+Requires an active licensed QVM (QRadar Vulnerability Manager) module.
 
-Note: Returns empty list if QVM module not installed."""
+Note: Returns empty list if QVM not available."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -71,6 +70,10 @@ Note: Returns empty list if QVM module not installed."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.QVM_VULNS
 
     @property
     def approval_required(self) -> bool:
@@ -101,7 +104,7 @@ Note: Returns empty list if QVM module not installed."""
             params["filters"] = arguments["filters"]
 
         # Make API call
-        response = await self.client.get('/qvm/vulns', params=params)
+        response = await self.client.get(self.endpoint, params=params)
         response.raise_for_status()
 
         vulnerabilities = response.json()

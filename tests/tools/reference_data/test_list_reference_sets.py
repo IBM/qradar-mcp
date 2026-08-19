@@ -99,7 +99,7 @@ class TestListReferenceSetsExecution:
         assert "content" in result
         tool.client.get.assert_called_once()
         call_args = tool.client.get.call_args
-        assert call_args[0][0] == "/reference_data_collections/sets"
+        assert call_args[0][0] == "reference_data_collections/sets"
 
     @pytest.mark.asyncio
     async def test_execute_with_filter(self, tool, sample_reference_sets):

@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 from qradar_mcp.utils.parameters import build_query_params
 
 
@@ -37,21 +38,13 @@ class GetSystemInfoTool(MCPTool):
     def description(self) -> str:
         return """Get QRadar system version and configuration information.
 
-Retrieves system metadata including build version, external version, release name,
-and FIPS enablement status.
-
-Use cases:
-  - Version verification before using version-specific features
-  - Compliance reporting and documentation
-  - Troubleshooting and support diagnostics
-  - Deployment validation after upgrades
+Returns metadata such as build version, external version, release name, and
+FIPS enablement status.
 
 Example:
-  get_system_info()
-  get_system_info(fields="build_version,external_version")
+  - get_system_info(fields="build_version,external_version")
 
-Note: This endpoint provides read-only system information and requires no special
-permissions beyond basic API access."""
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -64,6 +57,10 @@ permissions beyond basic API access."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.SYSTEM_ABOUT
 
     @property
     def approval_required(self) -> bool:
@@ -88,7 +85,7 @@ permissions beyond basic API access."""
         )
 
         # Make API call
-        response = await self.client.get('/system/about', params=params)
+        response = await self.client.get(self.endpoint, params=params)
         response.raise_for_status()
 
         system_info = response.json()

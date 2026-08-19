@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class CreateArielSearchTool(MCPTool):
@@ -35,8 +36,11 @@ class CreateArielSearchTool(MCPTool):
     @property
     def description(self) -> str:
         return (
-            "Create a new asynchronous Ariel search using AQL query expression or "
-            "saved search ID. Returns search ID for monitoring status and retrieving results.\n\n"
+            "Create a new asynchronous Ariel search using an AQL query expression or a "
+            "saved search ID. Returns a UUID search_id string used to monitor status and "
+            "retrieve results via get_ariel_search_status and get_ariel_search_results.\n\n"
+            "NOTE: saved_search_id is an INTEGER from list_saved_searches — it is "
+            "NOT the UUID search_id string returned by this tool or get_ariel_search_status.\n\n"
             "IMPORTANT: Before using this tool with a query_expression:\n"
             "1. Read qradar://aql/fields/events or qradar://aql/fields/flows to get valid field names\n"
             "2. Read qradar://aql/functions to discover available functions\n"
@@ -55,14 +59,20 @@ class CreateArielSearchTool(MCPTool):
                 )
             .integer("saved_search_id")
                 .description(
-                    "ID of a saved search to execute. Mutually exclusive with query_expression."
+                    "Integer ID of a saved Ariel search to execute. Get this integer from "
+                    "list_saved_searches or get_saved_search. "
+                    "Mutually exclusive with query_expression."
                 )
-                .minimum(0)
+                .minimum(1)
             .build())
 
     @property
     def http_verb(self) -> str:
         return "POST"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.ARIEL_SEARCHES
 
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -97,7 +107,7 @@ class CreateArielSearchTool(MCPTool):
             params["saved_search_id"] = saved_search_id
 
         # Make API request - parameters go in query string per QRadar API spec
-        response = await self.client.post("ariel/searches", params=params)
+        response = await self.client.post(self.endpoint, params=params)
         response.raise_for_status()
         search_data = response.json()
         return self.create_success_response(json.dumps(search_data, indent=2))

@@ -16,8 +16,7 @@
 """
 List Rules Tool
 
-Retrieves a list of analytics rules from QRadar SIEM with optional filtering,
-sorting, and pagination.
+Retrieves a list of analytics rules from QRadar SIEM with optional filtering and pagination.
 """
 
 from typing import Dict, Any, List
@@ -29,6 +28,7 @@ from qradar_mcp.utils.parameters import (
     parse_range_from_limit_offset,
     build_headers
 )
+from qradar_mcp.tools import endpoints
 
 
 class ListRulesTool(MCPTool):
@@ -40,7 +40,7 @@ class ListRulesTool(MCPTool):
 
     @property
     def description(self) -> str:
-        return """List analytics rules from QRadar SIEM with optional filtering, sorting, and pagination.
+        return """List analytics rules from QRadar SIEM with optional filtering and pagination.
 
 Analytics rules are the core detection logic in QRadar that generate offenses and events.
 
@@ -55,28 +55,37 @@ Rule Origins:
   - OVERRIDE: Modified system rules
   - USER: Custom user-created rules
 
-Examples:
-  - List all rules: (no parameters)
-  - Filter by enabled: filter="enabled=true"
-  - Filter by type: filter="type='EVENT'"
-  - Filter by origin: filter="origin='USER'"
-  - Sort by name: sort="+name"
-  - Get first 20 rules: limit=20, offset=0"""
+=== FIELDS REFERENCE ===
+
+average_capacity: Number
+base_capacity: Number
+base_host_id: Number
+capacity_timestamp: Number
+creation_date: Number
+enabled: Boolean
+id: Number
+identifier: String
+linked_rule_identifier: String
+modification_date: Number
+name: String
+origin: String
+owner: String
+type: String
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description('Optional AQL-style filter expression. Examples: "enabled=true", "type=\'EVENT\'", "origin=\'USER\'"')
+                .description("Optional filter expression.")
             .string("fields")
-                .description('Comma-separated list of fields to include. Examples: "id,name,type,enabled", "id,name,owner,origin"')
-            .string("sort")
-                .description('Optional sort expression. Use +field for ascending, -field for descending. Examples: "+name", "-modification_date"')
+                .description("Optional comma-separated list of fields to include.")
             .integer("limit")
-                .description("Maximum number of rules to return (default: 50, max: 10000)")
+                .description("Maximum number of rules to return (default: 10, max: 10000)")
                 .minimum(1)
                 .maximum(10000)
-                .default(50)
+                .default(10)
             .integer("offset")
                 .description("Number of rules to skip for pagination (default: 0)")
                 .minimum(0)
@@ -89,6 +98,10 @@ Examples:
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.ANALYTICS_RULES
 
     @property
     def approval_required(self) -> bool:
@@ -131,7 +144,6 @@ Examples:
         """
         filter_expr = arguments.get("filter")
         fields_str = arguments.get("fields")
-        sort_expr = arguments.get("sort")
         limit = arguments.get("limit", 50)
         offset = arguments.get("offset", 0)
 
@@ -139,7 +151,6 @@ Examples:
         fields_list = [f.strip() for f in fields_str.split(",")] if fields_str else None
         params = build_query_params(
             filter_expr=filter_expr,
-            sort_fields=[sort_expr] if sort_expr else None,
             fields=fields_list
         )
 
@@ -161,7 +172,7 @@ Examples:
             List of rule dictionaries
         """
         response = await self.client.get(
-            '/analytics/rules',
+            self.endpoint,
             params=params,
             headers=headers
         )

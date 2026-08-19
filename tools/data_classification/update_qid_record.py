@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class UpdateQidRecordTool(MCPTool):
@@ -74,6 +75,10 @@ Updatable fields (at least one must be provided):
         return "POST"
 
     @property
+    def endpoint(self) -> str:
+        return endpoints.DATA_CLASS_QID_RECORD
+
+    @property
     def approval_required(self) -> bool:
         """POST (update) operation - requires approval."""
         return True
@@ -115,7 +120,7 @@ Updatable fields (at least one must be provided):
             headers["fields"] = fields
 
         response = await self.client.post(
-            f'/data_classification/qid_records/{int(qid_record_id)}',
+            self.endpoint.format(qid_record_id=int(qid_record_id)),
             data=body,
             headers=headers if headers else None
         )

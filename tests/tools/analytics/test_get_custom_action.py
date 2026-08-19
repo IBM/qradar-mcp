@@ -106,7 +106,7 @@ class TestExecution:
         # Verify API call
         tool.client.get.assert_called_once()
         call_args = tool.client.get.call_args
-        assert call_args[0][0] == '/analytics/custom_actions/actions/1'
+        assert call_args[0][0] == 'analytics/custom_actions/actions/1'
 
     @pytest.mark.asyncio
     async def test_execution_with_fields(self, tool, mock_custom_action):
@@ -151,7 +151,7 @@ class TestExecution:
 
         # Verify int conversion in API call
         call_args = tool.client.get.call_args
-        assert '/analytics/custom_actions/actions/1' in call_args[0][0]
+        assert 'analytics/custom_actions/actions/1' in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_encrypted_parameters_masked(self, tool, mock_custom_action):

@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class DeleteArielSearchTool(MCPTool):
@@ -52,6 +53,10 @@ class DeleteArielSearchTool(MCPTool):
     def http_verb(self) -> str:
         return "DELETE"
 
+    @property
+    def endpoint(self) -> str:
+        return endpoints.ARIEL_SEARCH
+
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the delete_ariel_search tool.
@@ -69,7 +74,7 @@ class DeleteArielSearchTool(MCPTool):
 
 
         # Make API request
-        api_path = f"ariel/searches/{search_id}"
+        api_path = self.endpoint.format(search_id=search_id)
         response = await self.client.delete(api_path=api_path)
 
         # Handle response based on status code

@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class GetQidRecordTool(MCPTool):
@@ -65,6 +66,10 @@ Returns:
         return "GET"
 
     @property
+    def endpoint(self) -> str:
+        return endpoints.DATA_CLASS_QID_RECORD
+
+    @property
     def approval_required(self) -> bool:
         """GET operation - does not require approval."""
         return False
@@ -90,7 +95,7 @@ Returns:
             params['fields'] = fields
 
         response = await self.client.get(
-            f'/data_classification/qid_records/{int(qid_record_id)}',
+            self.endpoint.format(qid_record_id=int(qid_record_id)),
             params=params if params else None
         )
         response.raise_for_status()

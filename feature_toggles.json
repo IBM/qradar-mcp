@@ -2,6 +2,7 @@
   "verb_toggles": {
     "GET": true,
     "POST": true,
+    "PUT": true,
     "DELETE": true
   },
   "group_toggles": {
@@ -23,6 +24,7 @@
     "aql_events_fields": true,
     "aql_flows_fields": true,
     "aql_functions": true,
-    "aql_generation_guide": true
+    "aql_generation_guide": true,
+    "api_query_syntax": true
   }
 }

@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class RemoveFromReferenceTable(MCPTool):
@@ -84,6 +85,10 @@ Note: All three (outer_key, inner_key, value) must match for removal."""
     def http_verb(self) -> str:
         return "DELETE"
 
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_TABLE_ENTRY
+
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the remove_from_reference_table tool.
@@ -114,7 +119,7 @@ Note: All three (outer_key, inner_key, value) must match for removal."""
 
         # Make API request
         response = await self.client.delete(
-            f'/reference_data/tables/{name}/{outer_key}/{inner_key}',
+            self.endpoint.format(name=name, outer_key=outer_key, inner_key=inner_key),
             params=params
         )
         response.raise_for_status()

@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class CreateReferenceMap(MCPTool):
@@ -91,6 +92,10 @@ Element types:
     def http_verb(self) -> str:
         return "POST"
 
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_MAPS
+
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the create_reference_map tool.
@@ -115,7 +120,7 @@ Element types:
 
         # Make API request
         response = await self.client.post(
-            '/reference_data/maps',
+            self.endpoint,
             params=params
         )
         response.raise_for_status()

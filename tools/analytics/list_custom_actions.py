@@ -24,6 +24,7 @@ import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_query_params, build_headers, parse_range_from_limit_offset
+from qradar_mcp.tools import endpoints
 
 
 class ListCustomActionsTool(MCPTool):
@@ -37,33 +38,36 @@ class ListCustomActionsTool(MCPTool):
     def description(self) -> str:
         return """List all custom actions available in the QRadar deployment.
 
+Custom actions enable automated responses to security events.
+
 Use cases:
   - Discover available automated response actions
   - Identify actions for SOAR integration and orchestration
   - Understand automation capabilities in the deployment
-  - Select appropriate action for offense response
   - Audit custom actions for compliance and security
 
-Custom actions enable automated responses to security events:
-  - IP blocking at firewalls
-  - Email notifications to security team
-  - Threat intelligence enrichment
-  - Ticket creation in ITSM systems
-  - Automated evidence collection
+=== FIELDS REFERENCE ===
 
-Parameter types:
-  - Fixed: Static values (e.g., timeout, API endpoint)
-  - Dynamic: Values from events/flows (e.g., sourceip, username)
+description: String
+id: Number
+interpreter: Number
+name: String
+parameters: Array<Object>
+  parameters(encrypted): Boolean
+  parameters(name): String
+  parameters(parameter_type): String
+  parameters(value): String
+script: Number
 
-Note: Returns actions user has permission to view."""
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("fields")
-                .description("Comma-separated fields (e.g., 'id,name,parameters')")
+                .description("Comma-separated fields.")
             .string("filter")
-                .description("AQL-style filter expression (e.g., 'name LIKE \"%Block%\"')")
+                .description("Optional filter expression.")
             .integer("limit")
                 .description("Maximum number of results to return (1-100)")
                 .minimum(1)
@@ -76,6 +80,10 @@ Note: Returns actions user has permission to view."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.ANALYTICS_CUSTOM_ACTIONS
 
     @property
     def approval_required(self) -> bool:
@@ -114,7 +122,7 @@ Note: Returns actions user has permission to view."""
             headers = build_headers(start=start, end=end)
 
         # Make API call
-        response = await self.client.get('/analytics/custom_actions/actions',
+        response = await self.client.get(self.endpoint,
                             params=params, headers=headers)
         response.raise_for_status()
 

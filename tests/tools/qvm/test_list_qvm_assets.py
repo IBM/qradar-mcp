@@ -212,7 +212,7 @@ class TestListQvmAssetsToolParameterHandling:
         result = await tool.execute({"saved_search_id": 123})
 
         # Verify savedSearchId was passed
-        tool.client.get.assert_called_once_with('/qvm/assets', params={"savedSearchId": 123})
+        tool.client.get.assert_called_once_with('qvm/assets', params={"savedSearchId": 123})
 
     @pytest.mark.asyncio
     async def test_execute_with_saved_search_name(self):
@@ -230,7 +230,7 @@ class TestListQvmAssetsToolParameterHandling:
         result = await tool.execute({"saved_search_name": "My Search"})
 
         # Verify savedSearchName was passed
-        tool.client.get.assert_called_once_with('/qvm/assets', params={"savedSearchName": "My Search"})
+        tool.client.get.assert_called_once_with('qvm/assets', params={"savedSearchName": "My Search"})
 
     @pytest.mark.asyncio
     async def test_execute_with_filters(self):
@@ -248,7 +248,7 @@ class TestListQvmAssetsToolParameterHandling:
         result = await tool.execute({"filters": "risk_score>50"})
 
         # Verify filters was passed
-        tool.client.get.assert_called_once_with('/qvm/assets', params={"filters": "risk_score>50"})
+        tool.client.get.assert_called_once_with('qvm/assets', params={"filters": "risk_score>50"})
 
     @pytest.mark.asyncio
     async def test_execute_with_dict_response(self):

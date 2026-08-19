@@ -23,6 +23,7 @@ from typing import Dict, Any
 
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class ValidateAQLTool(MCPTool):
@@ -59,6 +60,10 @@ Validation prevents wasted searches and provides helpful error messages with sug
     def http_verb(self) -> str:
         return "POST"
 
+    @property
+    def endpoint(self) -> str:
+        return endpoints.ARIEL_VALIDATE_AQL
+
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Validate an AQL query.
@@ -77,7 +82,7 @@ Validation prevents wasted searches and provides helpful error messages with sug
 
         # Call QRadar AQL validation endpoint with query parameters
         response = await self.client.post(
-            'ariel/validators/aql',
+            self.endpoint,
             params={'query_expression': query_expression}
         )
 

@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class CreateReferenceSetTool(MCPTool):
@@ -98,6 +99,10 @@ Entry types:
     def http_verb(self) -> str:
         return "POST"
 
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_COLLECTIONS_SETS
+
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the create_reference_set tool.
@@ -123,7 +128,7 @@ Entry types:
 
         # Make API request
         response = await self.client.post(
-            '/reference_data_collections/sets',
+            self.endpoint,
             data=body,
             headers=headers
         )

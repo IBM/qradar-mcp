@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 from qradar_mcp.utils.validators import validate_offense_id
 from qradar_mcp.utils.parameters import build_headers
 
@@ -43,8 +44,7 @@ Use cases:
   - Check analyst observations
   - Track remediation progress
   - Understand offense context
-
-Returns an array of Note objects with id, create_time, username, and note_text."""
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -54,7 +54,7 @@ Returns an array of Note objects with id, create_time, username, and note_text."
                 .minimum(0)
                 .required()
             .string("filter")
-                .description("Optional AQL filter to restrict notes (e.g., 'username=\"admin\"')")
+                .description("Optional filter to restrict notes")
             .string("fields")
                 .description("Optional comma-separated list of fields to return (e.g., 'id,note_text,create_time')")
             .integer("start")
@@ -71,6 +71,10 @@ Returns an array of Note objects with id, create_time, username, and note_text."
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.SIEM_OFFENSE_NOTES
 
     @property
     def approval_required(self) -> bool:
@@ -112,7 +116,7 @@ Returns an array of Note objects with id, create_time, username, and note_text."
 
         # Make API request
         response = await self.client.get(
-            f'siem/offenses/{offense_id}/notes',
+            self.endpoint.format(offense_id=offense_id),
             params=params,
             headers=headers
         )

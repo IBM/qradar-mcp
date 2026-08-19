@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class GetArielSearchStatusTool(MCPTool):
@@ -61,6 +62,10 @@ class GetArielSearchStatusTool(MCPTool):
         return "GET"
 
     @property
+    def endpoint(self) -> str:
+        return endpoints.ARIEL_SEARCH
+
+    @property
     def approval_required(self) -> bool:
         """GET operation - does not require approval."""
         return False
@@ -87,7 +92,7 @@ class GetArielSearchStatusTool(MCPTool):
             headers["Prefer"] = f"wait={wait_seconds}"
 
         # Make API request
-        api_path = f"ariel/searches/{search_id}"
+        api_path = self.endpoint.format(search_id=search_id)
         response = await self.client.get(api_path=api_path, headers=headers)
 
         # Handle response based on status code

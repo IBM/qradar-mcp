@@ -141,7 +141,7 @@ class TestGetLogSourceExecution:
         # Verify API call
         tool.client.get.assert_called_once()
         call_args = tool.client.get.call_args
-        assert "/config/event_sources/log_source_management/log_sources/123" in call_args[0][0]
+        assert "config/event_sources/log_source_management/log_sources/123" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_execute_with_fields(self, sample_log_source):

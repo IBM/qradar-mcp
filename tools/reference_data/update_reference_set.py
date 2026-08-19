@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class UpdateReferenceSetTool(MCPTool):
@@ -80,6 +81,10 @@ Only the properties specified will be updated; others remain unchanged."""
     def http_verb(self) -> str:
         return "POST"
 
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_COLLECTIONS_SET
+
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the update_reference_set tool.
@@ -115,7 +120,7 @@ Only the properties specified will be updated; others remain unchanged."""
 
         # Make API request
         response = await self.client.post(
-            f'/reference_data_collections/sets/{set_id}',
+            self.endpoint.format(name=set_id),
             data=body,
             headers=headers
         )

@@ -33,7 +33,10 @@ from .schema import schema
 # Import and register all tools
 from .offense.get_offense import GetOffenseTool
 from .offense.list_offenses import ListOffensesTool
-from .offense.update_offense import UpdateOffenseTool
+from .offense.assign_offense import AssignOffenseTool
+from .offense.set_offense_status import SetOffenseStatusTool
+from .offense.set_offense_follow_up import SetOffenseFollowUpTool
+from .offense.set_offense_protected import SetOffenseProtectedTool
 from .offense.add_offense_note import AddOffenseNoteTool
 from .offense.get_offense_notes import GetOffenseNotesTool
 from .offense.list_offense_closing_reasons import ListOffenseClosingReasonsTool
@@ -90,6 +93,13 @@ from .system.list_servers import ListServersTool
 
 from .config.list_users import ListUsersTool
 from .config.list_user_roles import ListUserRolesTool
+from .config.get_network_hierarchy import GetNetworkHierarchyTool
+from .config.get_staged_network_hierarchy import GetStagedNetworkHierarchyTool
+from .config.get_deploy_status import GetDeployStatusTool
+from .config.deploy_qradar_config import DeployQrConfigTool
+from .config.add_staged_network import AddStagedNetworkTool
+from .config.update_staged_network import UpdateStagedNetworkTool
+from .config.delete_staged_network import DeleteStagedNetworkTool
 
 from .services.geolocate_ip import GeolocateIpTool
 from .services.dns_lookup import DnsLookupTool
@@ -126,7 +136,10 @@ __all__ = [
     # Tool classes
     'GetOffenseTool',
     'ListOffensesTool',
-    'UpdateOffenseTool',
+    'AssignOffenseTool',
+    'SetOffenseStatusTool',
+    'SetOffenseFollowUpTool',
+    'SetOffenseProtectedTool',
     'AddOffenseNoteTool',
     'GetOffenseNotesTool',
     'ListOffenseClosingReasonsTool',
@@ -173,6 +186,13 @@ __all__ = [
     'ListServersTool',
     'ListUsersTool',
     'ListUserRolesTool',
+    'GetNetworkHierarchyTool',
+    'GetStagedNetworkHierarchyTool',
+    'GetDeployStatusTool',
+    'DeployQrConfigTool',
+    'AddStagedNetworkTool',
+    'UpdateStagedNetworkTool',
+    'DeleteStagedNetworkTool',
     'GeolocateIpTool',
     'DnsLookupTool',
     'GetDnsResultTool',

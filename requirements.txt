@@ -39,7 +39,7 @@ cffi==2.0.0
     # via cryptography
 click==8.3.3
     # via uvicorn
-cryptography==47.0.0
+cryptography==50.0.0
     # via
     #   authlib
     #   joserfc
@@ -93,7 +93,7 @@ jeepney==0.9.0
     # via
     #   keyring
     #   secretstorage
-joserfc==1.7.1
+joserfc==1.7.2
     # via authlib
 jsonref==1.1.0
     # via fastmcp
@@ -107,7 +107,7 @@ keyring==25.7.0
     # via py-key-value-aio
 markdown-it-py==4.0.0
     # via rich
-mcp==1.27.0
+mcp==1.28.1
     # via fastmcp
 mdurl==0.1.2
     # via markdown-it-py
@@ -138,7 +138,7 @@ pydantic[email]==2.13.3
     #   qradar-mcp (pyproject.toml)
 pydantic-core==2.46.3
     # via pydantic
-pydantic-settings==2.14.0
+pydantic-settings==2.14.2
     # via mcp
 pygments==2.20.0
     # via rich
@@ -206,7 +206,7 @@ uvicorn==0.46.0
     #   qradar-mcp (pyproject.toml)
 watchfiles==1.1.1
     # via fastmcp
-websockets==16.0
+websockets==15.0.1
     # via fastmcp
 zipp==3.23.1
     # via importlib-metadata

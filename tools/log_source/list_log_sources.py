@@ -24,6 +24,7 @@ from typing import Dict, Any, List
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 from qradar_mcp.utils.parameters import (
     build_query_params,
     parse_range_from_limit_offset,
@@ -41,41 +42,66 @@ class ListLogSourcesTool(MCPTool):
     @property
     def description(self) -> str:
         return """List log sources from QRadar SIEM with optional filtering, sorting, and pagination.
+        Log sources are the systems that send event data to QRadar for processing and analysis.
 
-Log sources are the systems that send event data to QRadar for processing and analysis.
+=== FIELDS REFERENCE ===
 
-Filterable Fields:
-  - id, name, description (text fields)
-  - type_id, protocol_type_id (numeric IDs)
-  - enabled, internal, gateway, auto_discovered (boolean)
-  - credibility (0-10)
-  - average_eps (numeric, events per second)
-  - last_event_time, creation_date, modified_date (epoch milliseconds)
+sending_ip: String
+internal: Boolean
+legacy_bulk_group_name: String
+protocol_parameters: Array<Object>
+  protocol_parameters(name): String
+  protocol_parameters(id): Number
+  protocol_parameters(value): String
+description: String
+coalesce_events: Boolean
+enabled: Boolean
+parsing_order: Number
+average_eps: Number
+group_ids: Array<Number>
+credibility: Number
+id: Number
+store_event_payload: Boolean
+target_event_collector_id: Number
+protocol_type_id: Number
+language_id: Number
+creation_date: Number
+wincollect_external_destination_ids: Array<Number>
+log_source_extension_id: Number
+syslog_event_timeout: Number
+name: String
+modified_date: Number
+auto_discovered: Boolean
+type_id: Number
+last_event_time: Number
+requires_deploy: Boolean
+gateway: Boolean
+wincollect_internal_destination_id: Number
+status: Object
+  status(last_updated): Number
+  status(messages): Array<Object>
+    status(messages(severity): String
+    status(messages(text): String
+    status(messages(timestamp): Number
+  status(status): String — valid values: SUCCESS, WARN, ERROR, NA, DISABLED
+disconnected_log_collector_id: Number
 
-Examples:
-  - List all log sources: (no parameters)
-  - Filter by name: filter="name LIKE 'firewall%'"
-  - Filter by type: filter="type_id=42"
-  - Filter by enabled status: filter="enabled=true"
-  - Filter by credibility: filter="credibility >= 8"
-  - Sort by name: sort="+name"
-  - Get first 20 sources: limit=20
 """
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description('Optional AQL-style filter expression. Examples: "name LIKE \'firewall%\'", "enabled=true", "type_id=42"')
+                .description("Optional filter expression.")
             .string("fields")
-                .description('Comma-separated list of fields to include. Examples: "id,name,type_id", "id,name,enabled,status"')
+                .description("Optional comma-separated list of fields to include.")
             .string("sort")
-                .description('Optional sort expression. Use +field for ascending, -field for descending. Examples: "+name", "-modified_date", "+type_id,-name"')
+                .description("Optional sort expression.")
             .integer("limit")
-                .description("Maximum number of log sources to return (default: 50, max: 10000)")
+                .description("Maximum number of log sources to return (default: 10, max: 10000)")
                 .minimum(1)
                 .maximum(10000)
-                .default(50)
+                .default(10)
             .integer("offset")
                 .description("Number of log sources to skip for pagination (default: 0)")
                 .minimum(0)
@@ -88,6 +114,10 @@ Examples:
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.CONFIG_LOG_SOURCES
 
     @property
     def approval_required(self) -> bool:
@@ -160,7 +190,7 @@ Examples:
             List of log source dictionaries
         """
         response = await self.client.get(
-            '/config/event_sources/log_source_management/log_sources',
+            self.endpoint,
             params=params,
             headers=headers
         )

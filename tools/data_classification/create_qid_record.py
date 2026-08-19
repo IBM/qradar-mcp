@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class CreateQidRecordTool(MCPTool):
@@ -54,14 +55,14 @@ Returns the newly created QID record including its assigned id and qid."""
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .integer("log_source_type_id")
-                .description("The ID of the log source type this QID record is created for")
+                .description("The ID of the log source type this QID record is created for. Get this from list_log_source_types")
                 .minimum(0)
                 .required()
             .string("name")
                 .description("The human-readable name for the event type")
                 .required()
             .integer("low_level_category_id")
-                .description("The low level category ID to classify this event type")
+                .description("The low level category ID to classify this event type. Get this from list_low_level_categories or get_low_level_category")
                 .minimum(0)
                 .required()
             .string("description")
@@ -77,6 +78,10 @@ Returns the newly created QID record including its assigned id and qid."""
     @property
     def http_verb(self) -> str:
         return "POST"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.DATA_CLASS_QID_RECORDS
 
     @property
     def approval_required(self) -> bool:
@@ -124,7 +129,7 @@ Returns the newly created QID record including its assigned id and qid."""
             headers["fields"] = fields
 
         response = await self.client.post(
-            '/data_classification/qid_records',
+            self.endpoint,
             data=body,
             headers=headers if headers else None
         )

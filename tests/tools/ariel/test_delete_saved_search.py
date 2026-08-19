@@ -37,12 +37,12 @@ class TestMetadata:
         assert tool.name == "delete_saved_search"
 
     def test_tool_description(self, tool):
-        """Test tool description includes use cases."""
+        """Test tool description includes key guidance."""
         description = tool.description
         assert "delete" in description.lower()
         assert "saved search" in description.lower()
         assert "dependency" in description.lower()
-        assert "use cases" in description.lower()
+        assert "conflict" in description.lower()
 
     def test_input_schema(self, tool):
         """Test input schema has correct parameters."""
@@ -91,7 +91,7 @@ class TestExecution:
         # Verify API call
         tool.client.delete.assert_called_once()
         call_args = tool.client.delete.call_args
-        assert call_args[0][0] == '/ariel/saved_searches/42'
+        assert call_args[0][0] == 'ariel/saved_searches/42'
 
     @pytest.mark.asyncio
     async def test_execution_with_fields(self, tool, mock_delete_task):
@@ -136,7 +136,7 @@ class TestExecution:
 
         # Verify int conversion in API call
         call_args = tool.client.delete.call_args
-        assert '/ariel/saved_searches/42' in call_args[0][0]
+        assert 'ariel/saved_searches/42' in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_async_task_response(self, tool):

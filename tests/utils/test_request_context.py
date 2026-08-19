@@ -71,52 +71,52 @@ def mock_call_next():
 
 class TestRequestContextGetters:
     """Test context variable getter functions."""
-
+    
     def test_get_request_method_default(self):
         """Test getting request method when not set."""
         clear_request_context()
         assert get_request_method() is None
-
+    
     def test_get_request_path_default(self):
         """Test getting request path when not set."""
         clear_request_context()
         assert get_request_path() is None
-
+    
     def test_get_request_url_default(self):
         """Test getting request URL when not set."""
         clear_request_context()
         assert get_request_url() is None
-
+    
     def test_get_request_remote_addr_default(self):
         """Test getting remote address when not set."""
         clear_request_context()
         assert get_request_remote_addr() is None
-
+    
     def test_get_request_user_agent_default(self):
         """Test getting user agent when not set."""
         clear_request_context()
         assert get_request_user_agent() is None
-
+    
     def test_get_request_referer_default(self):
         """Test getting referer when not set."""
         clear_request_context()
         assert get_request_referer() is None
-
+    
     def test_get_request_content_type_default(self):
         """Test getting content type when not set."""
         clear_request_context()
         assert get_request_content_type() is None
-
+    
     def test_get_request_query_params_default(self):
         """Test getting query params when not set."""
         clear_request_context()
         assert get_request_query_params() is None
-
+    
     def test_get_request_headers_default(self):
         """Test getting headers when not set."""
         clear_request_context()
         assert get_request_headers() is None
-
+    
     def test_get_request_context_default(self):
         """Test getting full context when not set."""
         clear_request_context()
@@ -136,14 +136,14 @@ class TestRequestContextGetters:
 
 class TestRequestContextSetters:
     """Test context variable setter functions."""
-
+    
     def test_set_request_context_all_fields(self):
         """Test setting all request context fields."""
         clear_request_context()
-
+        
         query_params = {'filter': "status='OPEN'"}
         headers = {'user-agent': 'test-agent', 'content-type': 'application/json'}
-
+        
         set_request_context(
             method='POST',
             path='/api/v1/offenses',
@@ -155,7 +155,7 @@ class TestRequestContextSetters:
             query_params=query_params,
             headers=headers
         )
-
+        
         assert get_request_method() == 'POST'
         assert get_request_path() == '/api/v1/offenses'
         assert get_request_url() == 'https://example.com/api/v1/offenses'
@@ -165,21 +165,21 @@ class TestRequestContextSetters:
         assert get_request_content_type() == 'application/json'
         assert get_request_query_params() == query_params
         assert get_request_headers() == headers
-
+    
     def test_set_request_context_partial_fields(self):
         """Test setting only some request context fields."""
         clear_request_context()
-
+        
         set_request_context(
             method='GET',
             path='/api/v1/rules'
         )
-
+        
         assert get_request_method() == 'GET'
         assert get_request_path() == '/api/v1/rules'
         assert get_request_url() is None
         assert get_request_remote_addr() is None
-
+    
     def test_clear_request_context(self):
         """Test clearing all request context fields."""
         set_request_context(
@@ -187,20 +187,20 @@ class TestRequestContextSetters:
             path='/api/v1/offenses',
             remote_addr='192.168.1.100'
         )
-
+        
         clear_request_context()
-
+        
         assert get_request_method() is None
         assert get_request_path() is None
         assert get_request_remote_addr() is None
-
+    
     def test_get_request_context_after_set(self):
         """Test getting full context after setting values."""
         clear_request_context()
-
+        
         query_params = {'limit': '50'}
         headers = {'authorization': 'Bearer token'}
-
+        
         set_request_context(
             method='GET',
             path='/api/v1/assets',
@@ -210,7 +210,7 @@ class TestRequestContextSetters:
             query_params=query_params,
             headers=headers
         )
-
+        
         context = get_request_context()
         assert context['method'] == 'GET'
         assert context['path'] == '/api/v1/assets'
@@ -225,37 +225,37 @@ class TestRequestContextSetters:
 
 class TestRequestContextMiddleware:
     """Test RequestContextMiddleware."""
-
+    
     @pytest.mark.asyncio
     async def test_middleware_extracts_request_info(self, mock_request, mock_call_next):
         """Test middleware extracts and sets request information."""
         clear_request_context()
-
+        
         middleware = RequestContextMiddleware(app=None)
         response = await middleware.dispatch(mock_request, mock_call_next)
-
+        
         # Verify response
         assert response.status_code == 200
-
+        
         # Context should be cleared after request
         assert get_request_method() is None
         assert get_request_path() is None
-
+    
     @pytest.mark.asyncio
     async def test_middleware_sets_context_during_request(self, mock_request):
         """Test middleware sets context that's accessible during request processing."""
         clear_request_context()
-
+        
         # Track what context was available during call_next
         captured_context = {}
-
+        
         async def call_next_with_capture(request):
             captured_context.update(get_request_context())
             return Response(content="OK", status_code=200)
-
+        
         middleware = RequestContextMiddleware(app=None)
         await middleware.dispatch(mock_request, call_next_with_capture)
-
+        
         # Verify context was set during request
         assert captured_context['method'] == 'POST'
         assert captured_context['path'] == '/api/v1/offenses'
@@ -267,41 +267,41 @@ class TestRequestContextMiddleware:
         assert captured_context['query_params'] == {"filter": "status='OPEN'"}
         assert 'authorization' in captured_context['headers']
         assert 'x-custom-header' in captured_context['headers']
-
+    
     @pytest.mark.asyncio
     async def test_middleware_clears_context_after_request(self, mock_request, mock_call_next):
         """Test middleware clears context after request completes."""
         clear_request_context()
-
+        
         middleware = RequestContextMiddleware(app=None)
         await middleware.dispatch(mock_request, mock_call_next)
-
+        
         # Context should be cleared
         context = get_request_context()
         assert all(value is None for value in context.values())
-
+    
     @pytest.mark.asyncio
     async def test_middleware_clears_context_on_exception(self, mock_request):
         """Test middleware clears context even if handler raises exception."""
         clear_request_context()
-
+        
         async def call_next_with_error(request):
             raise ValueError("Test error")
-
+        
         middleware = RequestContextMiddleware(app=None)
-
+        
         with pytest.raises(ValueError):
             await middleware.dispatch(mock_request, call_next_with_error)
-
+        
         # Context should still be cleared
         context = get_request_context()
         assert all(value is None for value in context.values())
-
+    
     @pytest.mark.asyncio
     async def test_middleware_handles_missing_client(self, mock_call_next):
         """Test middleware handles request without client information."""
         clear_request_context()
-
+        
         request = Mock(spec=Request)
         request.method = "GET"
         request.url = Mock()
@@ -310,26 +310,26 @@ class TestRequestContextMiddleware:
         request.client = None  # No client info
         request.headers = Headers({})
         request.query_params = QueryParams("")
-
+        
         captured_context = {}
-
+        
         async def call_next_with_capture(req):
             captured_context.update(get_request_context())
             return Response(content="OK", status_code=200)
-
+        
         middleware = RequestContextMiddleware(app=None)
         await middleware.dispatch(request, call_next_with_capture)
-
+        
         # Verify remote_addr is None when client is missing
         assert captured_context['remote_addr'] is None
         assert captured_context['method'] == 'GET'
         assert captured_context['path'] == '/api/v1/rules'
-
+    
     @pytest.mark.asyncio
     async def test_middleware_handles_empty_headers(self, mock_call_next):
         """Test middleware handles request with no headers."""
         clear_request_context()
-
+        
         request = Mock(spec=Request)
         request.method = "GET"
         request.url = Mock()
@@ -339,27 +339,27 @@ class TestRequestContextMiddleware:
         request.client.host = "10.0.0.1"
         request.headers = Headers({})
         request.query_params = QueryParams("")
-
+        
         captured_context = {}
-
+        
         async def call_next_with_capture(req):
             captured_context.update(get_request_context())
             return Response(content="OK", status_code=200)
-
+        
         middleware = RequestContextMiddleware(app=None)
         await middleware.dispatch(request, call_next_with_capture)
-
+        
         # Verify optional headers are None when not present
         assert captured_context['user_agent'] is None
         assert captured_context['referer'] is None
         assert captured_context['content_type'] is None
         assert captured_context['headers'] == {}
-
+    
     @pytest.mark.asyncio
     async def test_middleware_handles_empty_query_params(self, mock_call_next):
         """Test middleware handles request with no query parameters."""
         clear_request_context()
-
+        
         request = Mock(spec=Request)
         request.method = "POST"
         request.url = Mock()
@@ -369,15 +369,15 @@ class TestRequestContextMiddleware:
         request.client.host = "192.168.1.1"
         request.headers = Headers({'content-type': 'application/json'})
         request.query_params = QueryParams("")
-
+        
         captured_context = {}
-
+        
         async def call_next_with_capture(req):
             captured_context.update(get_request_context())
             return Response(content="OK", status_code=200)
-
+        
         middleware = RequestContextMiddleware(app=None)
         await middleware.dispatch(request, call_next_with_capture)
-
+        
         # Verify query_params is empty dict when no params
         assert captured_context['query_params'] == {}
