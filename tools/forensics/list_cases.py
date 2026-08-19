@@ -25,6 +25,7 @@ import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_range_header, parse_range_from_limit_offset
+from qradar_mcp.tools import endpoints
 
 
 class ListCasesTool(MCPTool):
@@ -53,7 +54,15 @@ Requirements:
   - QRadar Incident Forensics module
   - FORENSICS role for case access
 
-Note: Only returns cases accessible to the current user."""
+Note: Only returns cases accessible to the current user.
+
+=== FIELDS REFERENCE ===
+
+assigned_to: Array<String>
+id: Number
+name: String
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -74,6 +83,10 @@ Note: Only returns cases accessible to the current user."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.FORENSICS_CASES
 
     @property
     def approval_required(self) -> bool:
@@ -108,7 +121,7 @@ Note: Only returns cases accessible to the current user."""
         headers = build_range_header(start, end)
 
         # Make API call
-        response = await self.client.get('/forensics/case_management/cases',
+        response = await self.client.get(self.endpoint,
                             params=params, headers=headers)
         response.raise_for_status()
 

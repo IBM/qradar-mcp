@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class DeleteReferenceMap(MCPTool):
@@ -36,12 +37,6 @@ class DeleteReferenceMap(MCPTool):
     def description(self) -> str:
         return """Delete a reference data map or purge its contents.
 
-Use cases:
-  - Remove obsolete threat intelligence maps
-  - Clear expired data while keeping structure
-  - Clean up test maps
-  - Free up system resources
-
 Required parameters:
   - name: Map name to delete or purge
 
@@ -50,8 +45,7 @@ Optional parameters:
   - namespace: SHARED or TENANT (default: SHARED)
   - fields: Response field selection
 
-Note: This operation returns a task status object for async deletion.
-Use the task ID to monitor deletion progress."""
+Returns an async task status object for deletion progress."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -71,6 +65,10 @@ Use the task ID to monitor deletion progress."""
     @property
     def http_verb(self) -> str:
         return "DELETE"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_MAP
 
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -92,7 +90,7 @@ Use the task ID to monitor deletion progress."""
 
         # Make API request
         response = await self.client.delete(
-            f'/reference_data/maps/{name}',
+            self.endpoint.format(name=name),
             params=params
         )
         response.raise_for_status()

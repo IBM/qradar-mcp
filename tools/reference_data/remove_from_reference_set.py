@@ -22,6 +22,7 @@ Removes entries from a QRadar reference data set by entry ID.
 from typing import Dict, Any
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class RemoveFromReferenceSetTool(MCPTool):
@@ -48,7 +49,7 @@ from list_reference_sets (with entry details) or when adding entries to a set.""
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .integer("entry_id")
-                .description("The ID of the entry to remove from the reference set")
+                .description("The ID of the entry to remove from the reference set. Get this from list_reference_sets or a prior add_to_reference_set result")
                 .minimum(0)
                 .required()
             .build())
@@ -56,6 +57,10 @@ from list_reference_sets (with entry details) or when adding entries to a set.""
     @property
     def http_verb(self) -> str:
         return "DELETE"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_COLLECTIONS_SET_ENTRY
 
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -72,7 +77,7 @@ from list_reference_sets (with entry details) or when adding entries to a set.""
         if entry_id is None:
             return self.create_error_response("Error: entry_id is required")
 
-        response = await self.client.delete(f'/reference_data_collections/set_entries/{entry_id}')
+        response = await self.client.delete(self.endpoint.format(entry_id=entry_id))
 
         response.raise_for_status()
         message = f"Entry {entry_id} removed successfully from reference set"

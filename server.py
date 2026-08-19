@@ -31,6 +31,7 @@ from qradar_mcp.tools.fastmcp_adapter import register_all_tools
 from qradar_mcp.resources.aql_fields import AQLEventsFieldsResource, AQLFlowsFieldsResource
 from qradar_mcp.resources.aql_functions import AQLFunctionsResource
 from qradar_mcp.resources.aql_guide import AQLGenerationGuideResource
+from qradar_mcp.resources.api_query_syntax import APIQuerySyntaxResource
 from qradar_mcp.client.qradar_rest_client import QRadarRestClient, load_config
 from qradar_mcp.utils.feature_toggle_manager import (
     FeatureToggleManager,
@@ -255,7 +256,9 @@ atexit.register(cleanup_httpx_client)
 qradar_client = QRadarRestClient()
 
 # Register enabled MCPTool instances using adapter (filtered by feature toggles)
-registered_tools, skipped_tools = register_all_tools(mcp, toggle_manager, qradar_client)
+registered_tools, skipped_tools = register_all_tools(
+    mcp, toggle_manager, qradar_client
+)
 
 # Log feature toggle state summary after tools are registered
 log_feature_toggle_summary(registered_tools, skipped_tools)
@@ -265,6 +268,8 @@ log_feature_toggle_summary(registered_tools, skipped_tools)
 # Middleware format: list of tuples (middleware_class, args, kwargs)
 # Pass the shared qradar_client instance to maintain connection pooling
 app = mcp.http_app(
+    json_response=True,
+    stateless_http=True,
     middleware=[
         (RequestContextMiddleware, [], {}),
         (AuthTokenMiddleware, [], {}),
@@ -315,6 +320,18 @@ def register_resources():
         registered_resources.append('aql_functions')
     else:
         skipped_resources.append('aql_functions')
+
+    # API Query Syntax Resource
+    if resource_toggles.get('api_query_syntax', False):
+        @mcp.resource("qradar://api/query_syntax")
+        async def api_query_syntax() -> str:
+            """QRadar REST API filtering, sorting, paging, and field-limiting syntax reference"""
+            resource = APIQuerySyntaxResource()
+            result = await resource.read()
+            return result["contents"][0]["text"]
+        registered_resources.append('api_query_syntax')
+    else:
+        skipped_resources.append('api_query_syntax')
 
     # AQL Generation Guide Resource
     if resource_toggles.get('aql_generation_guide', False):

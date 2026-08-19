@@ -97,7 +97,7 @@ class TestUpdateReferenceSetToolExecution:
         assert "Updated description" in result["content"][0]["text"]
         update_reference_set_tool.client.post.assert_called_once()
         call_args = update_reference_set_tool.client.post.call_args
-        assert call_args[0][0] == '/reference_data_collections/sets/123'
+        assert call_args[0][0] == 'reference_data_collections/sets/123'
         assert call_args[1]["data"]["description"] == "Updated description"
 
     @pytest.mark.asyncio

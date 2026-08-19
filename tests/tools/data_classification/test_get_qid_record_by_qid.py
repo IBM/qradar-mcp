@@ -87,7 +87,7 @@ class TestGetQidRecordByQidExecution:
         assert data["id"] == 63998
 
         call_args = tool.client.get.call_args
-        assert "/data_classification/qid_records" in call_args[0][0]
+        assert "data_classification/qid_records" in call_args[0][0]
         assert call_args[1]["params"]["filter"] == "qid=2500001"
 
     @pytest.mark.asyncio

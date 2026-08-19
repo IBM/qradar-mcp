@@ -23,6 +23,7 @@ import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_range_header, parse_range_from_limit_offset
+from qradar_mcp.tools import endpoints
 
 
 class ListAssetPropertiesTool(MCPTool):
@@ -47,7 +48,18 @@ Use cases:
   - Understand asset model structure
   - Build dynamic asset filters
 
-Note: Custom properties are organization-specific."""
+Note: Custom properties are organization-specific.
+
+=== FIELDS REFERENCE ===
+
+custom: Boolean
+data_type: String
+display: Boolean
+id: Number
+name: String
+state: Number
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -68,6 +80,10 @@ Note: Custom properties are organization-specific."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.ASSET_MODEL_PROPERTIES
 
     @property
     def approval_required(self) -> bool:
@@ -102,7 +118,7 @@ Note: Custom properties are organization-specific."""
         headers = build_range_header(start, end)
 
         # Make API call
-        response = await self.client.get('/asset_model/properties', params=params, headers=headers)
+        response = await self.client.get(self.endpoint, params=params, headers=headers)
         response.raise_for_status()
 
         properties = response.json()

@@ -67,7 +67,7 @@ class TestListHighLevelCategoriesExecution:
         assert data[0]["id"] == 19000
 
         call_args = tool.client.get.call_args
-        assert "/data_classification/high_level_categories" in call_args[0][0]
+        assert "data_classification/high_level_categories" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_execute_with_sort(self):
@@ -132,7 +132,7 @@ class TestGetHighLevelCategoryExecution:
         assert data["name"] == "Audit"
 
         call_args = tool.client.get.call_args
-        assert "/data_classification/high_level_categories/19000" in call_args[0][0]
+        assert "data_classification/high_level_categories/19000" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_execute_missing_id(self):

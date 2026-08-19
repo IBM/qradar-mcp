@@ -20,12 +20,44 @@ Provides dynamic access to QRadar AQL function definitions.
 """
 
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from qradar_mcp.utils.mcp_logger import log_mcp
 from qradar_mcp.client.qradar_rest_client import QRadarRestClient
 
 from .base import MCPResource
+
+
+_DATABASES = ['events', 'flows']
+_AGGREGATION_FUNCTIONS = {
+    'AVG', 'MAX', 'MIN', 'SUM', 'COUNT', 'DISTINCTCOUNT',
+    'UNIQUECOUNT', 'FIRST', 'LAST'
+}
+
+
+def _normalize_functions(data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Normalize and deduplicate AQL functions across databases."""
+    functions = []
+    seen_keys = set()
+
+    for func in data:
+        func_info = {
+            "name": func.get('name', ''),
+            "description": func.get('description', ''),
+            "return_data_type": func.get('return_data_type', ''),
+            "argument_types": func.get('argument_types', []),
+            "database_type": func.get('database_type', '')
+        }
+        key = (
+            func_info['name'].upper(),
+            tuple(func_info['argument_types']),
+            func_info['database_type']
+        )
+        if key not in seen_keys:
+            functions.append(func_info)
+            seen_keys.add(key)
+
+    return functions
 
 
 class AQLFunctionsResource(MCPResource):
@@ -58,34 +90,39 @@ class AQLFunctionsResource(MCPResource):
             Dict with function definitions in MCP format
         """
         try:
-            log_mcp("Fetching AQL functions from /ariel/functions", level='DEBUG')
-            response = await self.rest_client.get('ariel/functions')
-
-            if response.status_code != 200:
-                raise RuntimeError(
-                    f"Failed to fetch AQL functions: {response.status_code} - {response.text}"
+            function_data = []
+            for database in _DATABASES:
+                log_mcp(
+                    f"Fetching AQL functions from /ariel/functions?database={database}",
+                    level='DEBUG'
+                )
+                response = await self.rest_client.get(
+                    'ariel/functions', params={'database': database}
                 )
 
-            data = response.json()
+                if response.status_code != 200:
+                    raise RuntimeError(
+                        "Failed to fetch AQL functions for "
+                        f"{database}: {response.status_code} - {response.text}"
+                    )
+                response_data = response.json()
+                if isinstance(response_data, list):
+                    function_data.extend(response_data)
 
-            # Extract and format function information
-            functions = []
-            if isinstance(data, list):
-                for func in data:
-                    func_info = {
-                        "name": func.get('name', ''),
-                        "description": func.get('description', ''),
-                        "return_data_type": func.get('return_data_type', ''),
-                        "argument_types": func.get('argument_types', []),
-                        "database_type": func.get('database_type', '')
-                    }
-                    functions.append(func_info)
+            functions = _normalize_functions(function_data)
 
             # Categorize functions
-            data_retrieval = [f for f in functions if f.get('database_type') == 'COMMON']
-            aggregation = [f for f in functions if f['name'].upper() in
-                          ['AVG', 'MAX', 'MIN', 'SUM', 'COUNT', 'DISTINCTCOUNT', 'UNIQUECOUNT', 'FIRST', 'LAST']]
-            other = [f for f in functions if f not in data_retrieval and f not in aggregation]
+            data_retrieval = [
+                func for func in functions if func.get('database_type') == 'COMMON'
+            ]
+            aggregation = [
+                func for func in functions
+                if func['name'].upper() in _AGGREGATION_FUNCTIONS
+            ]
+            other = [
+                func for func in functions
+                if func not in data_retrieval and func not in aggregation
+            ]
 
             # Format as MCP resource content
             content = {

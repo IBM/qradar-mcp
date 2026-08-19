@@ -65,8 +65,8 @@ class TestAQLGenerationGuideResource:
         result = await resource.read()
         guide_text = result['contents'][0]['text']
 
-        assert "qradar://aql/fields/events" in guide_text
-        assert "qradar://aql/fields/flows" in guide_text
+        assert "qradar://aql/events/fields" in guide_text
+        assert "qradar://aql/flows/fields" in guide_text
         assert "qradar://aql/functions" in guide_text
 
     @pytest.mark.asyncio

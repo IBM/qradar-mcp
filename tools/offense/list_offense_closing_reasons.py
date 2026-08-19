@@ -23,6 +23,8 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
+from qradar_mcp.utils.parameters import build_headers
 
 
 class ListOffenseClosingReasonsTool(MCPTool):
@@ -36,19 +38,19 @@ class ListOffenseClosingReasonsTool(MCPTool):
     def description(self) -> str:
         return """List valid offense closing reasons.
 
-CRITICAL: Use this tool to get valid closing_reason_id values before calling
-update_offense to close an offense.
-
-Use cases:
-  - Get valid closing reason IDs for offense closure workflow
-  - Display available closing reasons to analysts
-  - Filter out deleted or reserved reasons
-  - Audit available closing reasons
-
 By default, excludes deleted and reserved closing reasons (most common use case).
 Use include_deleted=true or include_reserved=true to see all reasons.
 
-Note: Deleted and reserved closing reasons cannot be used to close offenses."""
+Note: Deleted and reserved closing reasons cannot be used to close offenses.
+
+=== FIELDS REFERENCE ===
+
+id: Number
+is_deleted: Boolean
+is_reserved: Boolean
+text: String
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -60,14 +62,22 @@ Note: Deleted and reserved closing reasons cannot be used to close offenses."""
                 .description("Include deleted closing reasons (default: false). "
                            "Deleted reasons cannot be used to close offenses.")
             .string("filter")
-                .description("Optional AQL filter expression to restrict results")
+                .description("Optional filter expression.")
+            .integer("limit")
+                .description("Maximum number of results to return (default: 10)")
+                .minimum(1)
+                .default(10)
             .string("fields")
-                .description("Optional comma-separated list of fields to return")
+                .description("Optional comma-separated list of fields to return.")
             .build())
 
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.SIEM_OFFENSE_CLOSING_REASONS
 
     @property
     def approval_required(self) -> bool:
@@ -83,31 +93,30 @@ Note: Deleted and reserved closing reasons cannot be used to close offenses."""
                 - include_reserved: Include reserved reasons (default: false)
                 - include_deleted: Include deleted reasons (default: false)
                 - filter: AQL filter expression
+                - limit: Maximum results to return
                 - fields: Field selection
 
         Returns:
             MCP response with closing reasons list or error
         """
-
-        # Build query parameters
         params = {}
 
-        # Boolean flags
         if arguments.get("include_reserved"):
             params["include_reserved"] = "true"
 
         if arguments.get("include_deleted"):
             params["include_deleted"] = "true"
 
-        # Optional filter
         if arguments.get("filter"):
             params["filter"] = arguments["filter"]
 
-        # Optional field selection
         if arguments.get("fields"):
             params["fields"] = arguments["fields"]
 
-        response = await self.client.get('/siem/offense_closing_reasons', params=params)
+        limit = arguments.get("limit", 10)
+        headers = build_headers(start=0, end=limit - 1)
+
+        response = await self.client.get(self.endpoint, params=params, headers=headers)
         response.raise_for_status()
 
         closing_reasons = response.json()

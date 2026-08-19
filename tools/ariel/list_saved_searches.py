@@ -24,6 +24,7 @@ import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_query_params, build_headers, parse_range_from_limit_offset
+from qradar_mcp.tools import endpoints
 
 
 class ListSavedSearchesTool(MCPTool):
@@ -35,17 +36,31 @@ class ListSavedSearchesTool(MCPTool):
 
     @property
     def description(self) -> str:
-        return """List all Ariel saved searches available to the user.
+        return """List Ariel saved searches you can access.
 
-Use cases:
-  - Discover existing saved searches before creating new ones
-  - Browse queries shared by colleagues as investigation templates
-  - Find investigation playbooks and standardized procedures
-  - Audit saved searches for compliance and cleanup
-  - Identify reusable queries to reduce AQL writing time
+Use this to discover reusable searches. Inspect one with get_saved_search,
+then run it by ID with create_ariel_search.
 
-Note: Returns searches user has permission to view (owned + shared).
-Execute saved searches using create_ariel_search with AQL from get_saved_search."""
+Returns searches the user has permission to view (owned and shared).
+
+=== FIELDS REFERENCE ===
+
+aql: String
+creation_date: Number
+database: String
+description: String
+id: Number
+is_aggregate: Boolean
+is_dashboard: Boolean
+is_default: Boolean
+is_quick_search: Boolean
+is_shared: Boolean
+modified_date: Number
+name: String
+owner: String
+uid: String
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -66,6 +81,10 @@ Execute saved searches using create_ariel_search with AQL from get_saved_search.
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.ARIEL_SAVED_SEARCHES
 
     @property
     def approval_required(self) -> bool:
@@ -104,7 +123,7 @@ Execute saved searches using create_ariel_search with AQL from get_saved_search.
             headers = build_headers(start=start, end=end)
 
         # Make API call
-        response = await self.client.get('/ariel/saved_searches', params=params, headers=headers)
+        response = await self.client.get(self.endpoint, params=params, headers=headers)
         response.raise_for_status()
 
         data = response.json()

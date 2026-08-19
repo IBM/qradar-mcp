@@ -144,7 +144,7 @@ class TestAddToReferenceSetExecution:
         tool.client.get.assert_called_once()
         tool.client.post.assert_called_once()
         call_args = tool.client.post.call_args
-        assert call_args[0][0] == '/reference_data_collections/set_entries'
+        assert call_args[0][0] == 'reference_data_collections/set_entries'
         assert call_args[1]['data']['collection_id'] == 123
         assert call_args[1]['data']['value'] == "192.168.1.100"
 

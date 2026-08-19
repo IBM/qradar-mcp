@@ -139,7 +139,7 @@ class TestGetDsmEventMappingExecution:
         data = json.loads(result["content"][0]["text"])
         assert data["id"] == 1001
         call_args = tool.client.get.call_args
-        assert "/data_classification/dsm_event_mappings/1001" in call_args[0][0]
+        assert "data_classification/dsm_event_mappings/1001" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_execute_missing_id(self):

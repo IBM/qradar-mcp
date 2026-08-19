@@ -114,7 +114,7 @@ class TestGetRuleExecution:
         # Verify API call
         tool.client.get.assert_called_once()
         call_args = tool.client.get.call_args
-        assert call_args[0][0] == '/analytics/rules/100001'
+        assert call_args[0][0] == 'analytics/rules/100001'
 
     @pytest.mark.asyncio
     async def test_execute_with_fields(self, sample_rule):

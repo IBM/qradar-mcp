@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 from qradar_mcp.utils.parameters import build_range_header, parse_range_from_limit_offset
 
 
@@ -51,19 +52,37 @@ Use cases:
   - Plan log source deployments
   - Verify DSM availability
 
-Note: Internal types (System Notification, SIM Audit, etc.) cannot have log sources created."""
+Note: Internal types (System Notification, SIM Audit, etc.) cannot have log sources created.
+
+=== FIELDS REFERENCE ===
+
+custom: Boolean
+default_protocol_id: Number
+id: Number
+internal: Boolean
+latest_version: String
+log_source_extension_id: Number
+name: String
+protocol_types: Array<Object>
+  protocol_types(documented): Boolean
+  protocol_types(protocol_id): Number
+supported_language_ids: Array<Number>
+uuid: String
+version: String
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description("Filter types (e.g., 'internal=false' for external types only)")
+                .description("Optional filter expression.")
             .string("fields")
-                .description("Specific fields to return (e.g., 'id,name,protocol_types')")
+                .description("Optional comma-separated list of fields to return.")
             .integer("limit")
-                .description("Maximum number of types to return (1-100)")
+                .description("Maximum number of types to return (default: 10)")
                 .minimum(1)
-                .maximum(100)
+                .default(10)
             .integer("offset")
                 .description("Starting index for pagination (0-based)")
                 .minimum(0)
@@ -72,6 +91,10 @@ Note: Internal types (System Notification, SIM Audit, etc.) cannot have log sour
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.CONFIG_LOG_SOURCE_TYPES
 
     @property
     def approval_required(self) -> bool:
@@ -106,7 +129,7 @@ Note: Internal types (System Notification, SIM Audit, etc.) cannot have log sour
         headers = build_range_header(start, end)
 
         # Make API call
-        response = await self.client.get('/config/event_sources/log_source_management/log_source_types',
+        response = await self.client.get(self.endpoint,
                             params=params, headers=headers)
         response.raise_for_status()
 

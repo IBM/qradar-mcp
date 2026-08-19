@@ -34,8 +34,8 @@ class TestListLocalDestinationAddressesTool:
     def test_tool_description(self):
         """Test that tool has correct description."""
         tool = ListLocalDestinationAddressesTool()
-        assert "List local destination IP addresses" in tool.description
-        assert "offense associations" in tool.description
+        assert "local destination IP addresses" in tool.description
+        assert "offenses" in tool.description
 
     def test_input_schema_structure(self):
         """Test that input schema has correct structure."""
@@ -65,7 +65,7 @@ class TestListLocalDestinationAddressesTool:
         definition = tool.to_mcp_tool_definition()
 
         assert definition["name"] == "list_local_destination_addresses"
-        assert "List local destination IP addresses" in definition["description"]
+        assert "local destination IP addresses" in definition["description"]
         assert "inputSchema" in definition
 
 
@@ -111,8 +111,12 @@ class TestListLocalDestinationAddressesToolExecution:
 
         result = await tool.execute({})
 
-        # Verify client was called correctly
-        tool.client.get.assert_called_once_with('/siem/local_destination_addresses', params={})
+        # Verify client was called correctly — default limit=10 always sends Range
+        tool.client.get.assert_called_once_with(
+            'siem/local_destination_addresses',
+            params={},
+            headers={'Range': 'items=0-9'},
+        )
 
         # Verify MCP result structure
         assert "content" in result
@@ -144,8 +148,9 @@ class TestListLocalDestinationAddressesToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/siem/local_destination_addresses',
-            params={"filter": "magnitude>5"}
+            'siem/local_destination_addresses',
+            params={"filter": "magnitude>5"},
+            headers={'Range': 'items=0-9'},
         )
 
     @pytest.mark.asyncio
@@ -168,8 +173,9 @@ class TestListLocalDestinationAddressesToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/siem/local_destination_addresses',
-            params={"fields": "id,local_destination_ip,magnitude"}
+            'siem/local_destination_addresses',
+            params={"fields": "id,local_destination_ip,magnitude"},
+            headers={'Range': 'items=0-9'},
         )
 
     @pytest.mark.asyncio
@@ -195,11 +201,12 @@ class TestListLocalDestinationAddressesToolExecution:
 
         # Verify client was called with all params
         tool.client.get.assert_called_once_with(
-            '/siem/local_destination_addresses',
+            'siem/local_destination_addresses',
             params={
                 "filter": "magnitude>4",
-                "fields": "id,local_destination_ip,magnitude,offense_ids"
-            }
+                "fields": "id,local_destination_ip,magnitude,offense_ids",
+            },
+            headers={'Range': 'items=0-9'},
         )
 
     @pytest.mark.asyncio
@@ -300,6 +307,47 @@ class TestListLocalDestinationAddressesToolExecution:
         assert "content" in result
         assert "10.0.1.50" in result["content"][0]["text"]
         assert '"magnitude": 9' in result["content"][0]["text"]
+
+
+
+    @pytest.mark.asyncio
+    async def test_execute_with_explicit_limit(self):
+        """Test that an explicit limit sets the Range header correctly."""
+        tool = ListLocalDestinationAddressesTool()
+        tool.client = AsyncMock()
+
+        mock_response = httpx.Response(
+            status_code=200,
+            json=[{"id": 1, "local_destination_ip": "10.0.1.50"}],
+            request=httpx.Request("GET", "http://test")
+        )
+        tool.client.get = AsyncMock(return_value=mock_response)
+
+        await tool.execute({"limit": 5})
+
+        tool.client.get.assert_called_once_with(
+            'siem/local_destination_addresses',
+            params={},
+            headers={'Range': 'items=0-4'},
+        )
+
+    @pytest.mark.asyncio
+    async def test_execute_default_limit_sends_range(self):
+        """Test that the default limit of 10 always sends a Range header."""
+        tool = ListLocalDestinationAddressesTool()
+        tool.client = AsyncMock()
+
+        mock_response = httpx.Response(
+            status_code=200,
+            json=[],
+            request=httpx.Request("GET", "http://test")
+        )
+        tool.client.get = AsyncMock(return_value=mock_response)
+
+        await tool.execute({})
+
+        _, kwargs = tool.client.get.call_args
+        assert kwargs["headers"] == {'Range': 'items=0-9'}
 
 
 

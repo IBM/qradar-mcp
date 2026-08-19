@@ -337,6 +337,53 @@ class TestToolExecution:
         assert result.get("isError") is True
         assert "offense_id" in result["content"][0]["text"].lower()
 
+    @pytest.mark.asyncio
+    async def test_adapter_returns_error_text_not_raises(self):
+        """Adapter must return error text as string, not raise, when tool returns isError."""
+        mock_client = AsyncMock()
+        mock_response = httpx.Response(
+            500,
+            json={"message": "Endpoint invocation returned an unexpected error"},
+            request=httpx.Request("GET", "http://test")
+        )
+        mock_response.raise_for_status = Mock(
+            side_effect=httpx.HTTPStatusError(
+                "500 Internal Server Error",
+                request=mock_response.request,
+                response=mock_response
+            )
+        )
+        mock_client.get = AsyncMock(return_value=mock_response)
+
+        tool = GetOffenseTool()
+        tool.client = mock_client
+
+        # Tool.execute() returns isError response — adapter must NOT raise
+        result = await tool.execute({"offense_id": 1})
+        assert result.get("isError") is True
+        error_text = result["content"][0]["text"]
+
+        # Now verify the adapter's _execute_tool closure returns it as a string
+        from qradar_mcp.tools.fastmcp_adapter import register_mcp_tool_with_fastmcp
+        from unittest.mock import patch as _patch
+
+        mcp = Mock()
+        captured = {}
+
+        def capture_tool(meta=None):
+            def decorator(fn):
+                captured["fn"] = fn
+                return fn
+            return decorator
+
+        mcp.tool = capture_tool
+        register_mcp_tool_with_fastmcp(mcp, tool)
+
+        # Call the registered wrapper — should return the error string, not raise
+        returned = await captured["fn"](offense_id=1)
+        assert isinstance(returned, str)
+        assert returned == error_text
+
 
 class TestSchemaValidation:
     """Test schema validation for different parameter types."""
@@ -382,6 +429,7 @@ class TestRegisterAllTools:
             "verb_toggles": {
                 "GET": true,
                 "POST": true,
+                "PUT": true,
                 "DELETE": true
             },
             "group_toggles": {
@@ -411,6 +459,7 @@ class TestRegisterAllTools:
             "verb_toggles": {
                 "GET": true,
                 "POST": true,
+                "PUT": true,
                 "DELETE": false
             },
             "group_toggles": {
@@ -434,7 +483,7 @@ class TestRegisterAllTools:
         return FeatureToggleManager(str(config_file))
 
     def test_all_tools_registered_when_all_enabled(self, all_enabled_config):
-        """Test that all 73 tools are registered when all toggles are enabled."""
+        """Test that all 84 tools are registered when all toggles are enabled."""
         from qradar_mcp.tools.fastmcp_adapter import register_all_tools
 
         mock_mcp = Mock()
@@ -443,8 +492,8 @@ class TestRegisterAllTools:
 
         registered_tools, skipped_tools = register_all_tools(mock_mcp, all_enabled_config, mock_qradar_client)
 
-        # Should register all 73 tools
-        assert len(registered_tools) == 73
+        # Should register all 83 toggle-managed tools
+        assert len(registered_tools) == 83
         assert len(skipped_tools) == 0
 
     def test_returns_tuple(self, all_enabled_config):
@@ -475,7 +524,7 @@ class TestRegisterAllTools:
         # Should have some registered and some skipped
         assert len(registered_tools) > 0
         assert len(skipped_tools) > 0
-        assert len(registered_tools) + len(skipped_tools) == 73
+        assert len(registered_tools) + len(skipped_tools) == 83
 
     def test_delete_verb_disabled_skips_delete_tools(self, some_disabled_config):
         """Test that tools with DELETE verb are skipped when DELETE is disabled."""
@@ -547,8 +596,8 @@ class TestRegisterAllTools:
         # No overlap between registered and skipped
         assert len(registered_names & skipped_names) == 0
 
-        # All 73 tools accounted for
-        assert len(registered_names | skipped_names) == 73
+        # All 83 toggle-managed tools accounted for
+        assert len(registered_names | skipped_names) == 83
 
 
 if __name__ == "__main__":

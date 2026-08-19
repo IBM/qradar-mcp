@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 from qradar_mcp.utils.parameters import (
     build_query_params,
     parse_range_from_limit_offset,
@@ -44,33 +45,28 @@ class ListHighLevelCategoriesTool(MCPTool):
 High level categories are the top-level groupings used to classify events in QRadar.
 Each low level category belongs to a high level category.
 
-Each high level category contains:
-  - id: The category ID (e.g., 19000 for Audit, 20000 for Risk)
-  - name: The category name (e.g., "Audit", "Risk", "Recon")
-  - description: A description of the category
+=== FIELDS REFERENCE ===
 
-Examples:
-  - List all categories: (no parameters)
-  - Filter by name: filter="name='Audit'"
-  - Sort by name: sort="+name"
-  - Sort by ID: sort="+id"
+id: Number
+name: String
+description: String
 
-Note: Sorting is only supported on "id" or "name" fields."""
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description('Optional filter expression. Examples: "name=\'Audit\'", "id=19000"')
+                .description('Optional filter expression.')
             .string("sort")
-                .description('Sort expression. Sorting only supported on "id" or "name". Use +field for ascending, -field for descending.')
+                .description('Optional sort expression.')
             .string("fields")
-                .description('Comma-separated list of fields to return. Examples: "id,name", "id,name,description"')
+                .description('Comma-separated list of fields to return.')
             .integer("limit")
-                .description("Maximum number of categories to return (default: 50, max: 10000)")
+                .description("Maximum number of categories to return (default: 10, max: 10000)")
                 .minimum(1)
                 .maximum(10000)
-                .default(50)
+                .default(10)
             .integer("offset")
                 .description("Number of categories to skip for pagination (default: 0)")
                 .minimum(0)
@@ -80,6 +76,10 @@ Note: Sorting is only supported on "id" or "name" fields."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.DATA_CLASS_HIGH_LEVEL_CATEGORIES
 
     @property
     def approval_required(self) -> bool:
@@ -113,7 +113,7 @@ Note: Sorting is only supported on "id" or "name" fields."""
         headers = build_headers(start=start, end=end)
 
         response = await self.client.get(
-            '/data_classification/high_level_categories',
+            self.endpoint,
             params=params,
             headers=headers
         )

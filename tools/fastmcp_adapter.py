@@ -115,12 +115,7 @@ def register_mcp_tool_with_fastmcp(mcp: FastMCP, tool: MCPTool) -> None:
         # Call original tool's execute method (now async)
         result = await tool.execute(filtered_kwargs)
 
-        # Handle error responses
-        if isinstance(result, dict) and result.get("isError"):
-            error_text = result["content"][0].get("text", "Unknown error")
-            raise ValueError(error_text)
-
-        # Extract text from MCP response format
+        # Extract text from MCP response format (covers both success and error)
         if isinstance(result, dict) and "content" in result:
             if len(result["content"]) > 0:
                 return result["content"][0].get("text", "")
@@ -194,7 +189,10 @@ def register_all_tools(mcp: FastMCP, toggle_manager, qradar_client) -> tuple:  #
     # pylint: disable=import-outside-toplevel
     from .offense.get_offense import GetOffenseTool
     from .offense.list_offenses import ListOffensesTool
-    from .offense.update_offense import UpdateOffenseTool
+    from .offense.assign_offense import AssignOffenseTool
+    from .offense.set_offense_status import SetOffenseStatusTool
+    from .offense.set_offense_follow_up import SetOffenseFollowUpTool
+    from .offense.set_offense_protected import SetOffenseProtectedTool
     from .offense.add_offense_note import AddOffenseNoteTool
     from .offense.get_offense_notes import GetOffenseNotesTool
     from .offense.list_offense_closing_reasons import ListOffenseClosingReasonsTool
@@ -252,6 +250,13 @@ def register_all_tools(mcp: FastMCP, toggle_manager, qradar_client) -> tuple:  #
 
     from .config.list_users import ListUsersTool
     from .config.list_user_roles import ListUserRolesTool
+    from .config.get_network_hierarchy import GetNetworkHierarchyTool
+    from .config.get_staged_network_hierarchy import GetStagedNetworkHierarchyTool
+    from .config.get_deploy_status import GetDeployStatusTool
+    from .config.deploy_qradar_config import DeployQrConfigTool
+    from .config.add_staged_network import AddStagedNetworkTool
+    from .config.update_staged_network import UpdateStagedNetworkTool
+    from .config.delete_staged_network import DeleteStagedNetworkTool
 
     from .services.geolocate_ip import GeolocateIpTool
     from .services.dns_lookup import DnsLookupTool
@@ -283,10 +288,13 @@ def register_all_tools(mcp: FastMCP, toggle_manager, qradar_client) -> tuple:  #
 
     # Register all tools using adapter
     tools = [
-        # Offense tools (9)
+        # Offense tools (12)
         GetOffenseTool(),
         ListOffensesTool(),
-        UpdateOffenseTool(),
+        AssignOffenseTool(),
+        SetOffenseStatusTool(),
+        SetOffenseFollowUpTool(),
+        SetOffenseProtectedTool(),
         AddOffenseNoteTool(),
         GetOffenseNotesTool(),
         ListOffenseClosingReasonsTool(),
@@ -350,9 +358,16 @@ def register_all_tools(mcp: FastMCP, toggle_manager, qradar_client) -> tuple:  #
         GetSystemInfoTool(),
         ListServersTool(),
 
-        # Configuration and access management tools (2)
+        # Configuration and access management tools (8)
         ListUsersTool(),
         ListUserRolesTool(),
+        GetNetworkHierarchyTool(),
+        GetStagedNetworkHierarchyTool(),
+        GetDeployStatusTool(),
+        DeployQrConfigTool(),
+        AddStagedNetworkTool(),
+        UpdateStagedNetworkTool(),
+        DeleteStagedNetworkTool(),
 
         # Network services and enrichment tools (5)
         GeolocateIpTool(),

@@ -22,6 +22,7 @@ Initiates DNS resolution for IP addresses (reverse lookup).
 from typing import Dict, Any
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class DnsLookupTool(MCPTool):
@@ -35,13 +36,7 @@ class DnsLookupTool(MCPTool):
     def description(self) -> str:
         return """Initiate DNS resolution for an IP address (reverse lookup).
 
-This is an asynchronous operation that returns a task ID. Use the
-get_dns_result tool to retrieve the results once the lookup completes.
-
-Returns:
-  - Task ID for tracking the lookup
-  - Current status (QUEUED, INITIALIZING, PROCESSING)
-  - Instructions for retrieving results
+Returns a task ID for an asynchronous lookup.
 
 Use cases:
   - Resolve suspicious IPs to hostnames
@@ -49,7 +44,8 @@ Use cases:
   - Correlate IPs across investigations
   - Build threat actor profiles
 
-Note: DNS lookups complete in the background. Poll get_dns_result for status."""
+Use get_dns_result with the returned task ID to check status and retrieve
+results."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -64,6 +60,10 @@ Note: DNS lookups complete in the background. Poll get_dns_result for status."""
     @property
     def http_verb(self) -> str:
         return "POST"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.SERVICES_DNS_LOOKUPS
 
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -88,7 +88,7 @@ Note: DNS lookups complete in the background. Poll get_dns_result for status."""
             params["fields"] = arguments["fields"]
 
         # Make POST request to initiate lookup
-        response = await self.client.post('/services/dns_lookups', params=params)
+        response = await self.client.post(self.endpoint, params=params)
         response.raise_for_status()
 
         task_data = response.json()

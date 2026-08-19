@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class UpdateDsmEventMappingTool(MCPTool):
@@ -47,11 +48,11 @@ Required parameters:
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .integer("dsm_event_mapping_id")
-                .description("The ID of the DSM event mapping to update")
+                .description("The ID of the DSM event mapping to update. Get this from list_dsm_event_mappings or get_dsm_event_mapping")
                 .minimum(0)
                 .required()
             .integer("qid_record_id")
-                .description("The new ID of the QID record to map matching events to")
+                .description("The new ID of the QID record to map matching events to. Get this from list_qid_records, get_qid_record, or get_qid_record_by_qid")
                 .minimum(0)
                 .required()
             .string("fields")
@@ -61,6 +62,10 @@ Required parameters:
     @property
     def http_verb(self) -> str:
         return "POST"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.DATA_CLASS_DSM_EVENT_MAPPING
 
     @property
     def approval_required(self) -> bool:
@@ -93,7 +98,7 @@ Required parameters:
             headers["fields"] = fields
 
         response = await self.client.post(
-            f'/data_classification/dsm_event_mappings/{int(dsm_event_mapping_id)}',
+            self.endpoint.format(dsm_event_mapping_id=int(dsm_event_mapping_id)),
             data=body,
             headers=headers if headers else None
         )

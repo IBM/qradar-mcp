@@ -24,6 +24,7 @@ import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_query_params
+from qradar_mcp.tools import endpoints
 
 
 class GetCustomActionTool(MCPTool):
@@ -74,6 +75,10 @@ Encrypted parameter values are masked (********) in the response."""
         return "GET"
 
     @property
+    def endpoint(self) -> str:
+        return endpoints.ANALYTICS_CUSTOM_ACTION
+
+    @property
     def approval_required(self) -> bool:
         """GET operation - does not require approval."""
         return False
@@ -103,7 +108,7 @@ Encrypted parameter values are masked (********) in the response."""
         )
 
         # Make API call
-        response = await self.client.get(f'/analytics/custom_actions/actions/{int(action_id)}',
+        response = await self.client.get(self.endpoint.format(action_id=int(action_id)),
                             params=params)
         response.raise_for_status()
 

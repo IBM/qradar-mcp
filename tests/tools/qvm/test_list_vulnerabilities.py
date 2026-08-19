@@ -213,7 +213,7 @@ class TestListVulnerabilitiesToolParameterHandling:
         result = await tool.execute({"saved_search_id": 456})
 
         # Verify savedSearchId was passed
-        tool.client.get.assert_called_once_with('/qvm/vulns', params={"savedSearchId": 456})
+        tool.client.get.assert_called_once_with('qvm/vulns', params={"savedSearchId": 456})
 
     @pytest.mark.asyncio
     async def test_execute_with_saved_search_name(self):
@@ -231,7 +231,7 @@ class TestListVulnerabilitiesToolParameterHandling:
         result = await tool.execute({"saved_search_name": "Critical Vulns"})
 
         # Verify savedSearchName was passed
-        tool.client.get.assert_called_once_with('/qvm/vulns', params={"savedSearchName": "Critical Vulns"})
+        tool.client.get.assert_called_once_with('qvm/vulns', params={"savedSearchName": "Critical Vulns"})
 
     @pytest.mark.asyncio
     async def test_execute_with_filters(self):
@@ -249,7 +249,7 @@ class TestListVulnerabilitiesToolParameterHandling:
         result = await tool.execute({"filters": "cvss_score>7"})
 
         # Verify filters was passed
-        tool.client.get.assert_called_once_with('/qvm/vulns', params={"filters": "cvss_score>7"})
+        tool.client.get.assert_called_once_with('qvm/vulns', params={"filters": "cvss_score>7"})
 
     @pytest.mark.asyncio
     async def test_execute_with_dict_response(self):

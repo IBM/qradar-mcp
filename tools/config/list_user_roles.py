@@ -28,6 +28,7 @@ from qradar_mcp.utils.parameters import (
     build_headers,
     parse_range_from_limit_offset
 )
+from qradar_mcp.tools import endpoints
 
 
 class ListUserRolesTool(MCPTool):
@@ -41,26 +42,20 @@ class ListUserRolesTool(MCPTool):
     def description(self) -> str:
         return """List available QRadar user roles and their capabilities.
 
-Retrieves deployed user roles including role name, ID, and detailed capability
-information. Each role defines a set of permissions that determine what users
-can access and do in QRadar. Access control applies based on caller's capabilities.
+Use this to review role names, IDs, and capabilities. Access control is
+applied: ADMIN users see all roles, SAASADMIN users see non-admin roles, and
+other users see only their own role unless current_user_role is used.
 
-Use cases:
-  - Role discovery for user assignment planning
-  - Capability mapping and permission analysis
-  - Access control design and documentation
-  - Compliance reporting of role definitions
-  - User management and role verification
+=== FIELDS REFERENCE ===
 
-Example:
-  list_user_roles()
-  list_user_roles(current_user_role=True)
-  list_user_roles(contains="ADMIN")
-  list_user_roles(fields="id,name", limit=20)
+capabilities: Array<Object>
+  capabilities(application_id): Number
+  capabilities(description): String
+  capabilities(name): String
+id: Number
+name: String
 
-Note: Access control is enforced - ADMIN users see all roles, SAASADMIN users
-see non-admin roles, other users see only their own role unless current_user_role
-parameter is used."""
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -86,6 +81,10 @@ parameter is used."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.CONFIG_ACCESS_USER_ROLES
 
     @property
     def approval_required(self) -> bool:
@@ -126,7 +125,7 @@ parameter is used."""
             headers = build_headers(start=start, end=end)
 
         # Make API call
-        response = await self.client.get('/config/access/user_roles', params=params, headers=headers)
+        response = await self.client.get(self.endpoint, params=params, headers=headers)
         response.raise_for_status()
 
         roles = response.json()

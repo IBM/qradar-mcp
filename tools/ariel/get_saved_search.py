@@ -24,6 +24,7 @@ import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_query_params
+from qradar_mcp.tools import endpoints
 
 
 class GetSavedSearchTool(MCPTool):
@@ -37,19 +38,10 @@ class GetSavedSearchTool(MCPTool):
     def description(self) -> str:
         return """Retrieve detailed information about a specific Ariel saved search.
 
-Use cases:
-  - View the complete AQL query before execution
-  - Study well-crafted queries from experienced analysts
-  - Get query details to create a modified version
-  - Extract query details for investigation runbooks
-  - Verify search parameters before running via create_ariel_search
+Use this to inspect the saved AQL before execution or modification. Execute
+it by ID with create_ariel_search.
 
-Integration example:
-  1. Get saved search details: get_saved_search(search_id=42)
-  2. Execute the AQL: create_ariel_search(query_expression=details['aql'])
-  3. Get results: get_ariel_search_results(search_id=search_id)
-
-Note: Returns 404 if search doesn't exist or user lacks permission."""
+Returns 404 if the search does not exist or the user lacks permission."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -65,6 +57,10 @@ Note: Returns 404 if search doesn't exist or user lacks permission."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.ARIEL_SAVED_SEARCH
 
     @property
     def approval_required(self) -> bool:
@@ -95,7 +91,7 @@ Note: Returns 404 if search doesn't exist or user lacks permission."""
         )
 
         # Make API call
-        response = await self.client.get(f'/ariel/saved_searches/{int(search_id)}', params=params)
+        response = await self.client.get(self.endpoint.format(search_id=int(search_id)), params=params)
         response.raise_for_status()
 
         data = response.json()

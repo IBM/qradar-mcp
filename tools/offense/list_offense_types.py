@@ -23,6 +23,8 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
+from qradar_mcp.utils.parameters import build_headers
 
 
 class ListOffenseTypesTool(MCPTool):
@@ -48,22 +50,40 @@ username). Custom properties appear only if used in rule actions or response lim
 Database types:
   - EVENTS: Event-based offense type
   - FLOWS: Flow-based offense type
-  - COMMON: Present in both events and flows"""
+  - COMMON: Present in both events and flows
+
+=== FIELDS REFERENCE ===
+
+custom: Boolean
+database_type: String
+id: Number
+name: String
+property_name: String
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description("Optional AQL filter expression (e.g., 'custom=false')")
+                .description("Optional AQL filter expression.")
             .string("sort")
-                .description("Optional sort expression (e.g., '+id,-name')")
+                .description("Optional sort expression.")
+            .integer("limit")
+                .description("Maximum number of results to return (default: 10)")
+                .minimum(1)
+                .default(10)
             .string("fields")
-                .description("Optional comma-separated list of fields to return")
+                .description("Optional comma-separated list of fields to return.")
             .build())
 
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.SIEM_OFFENSE_TYPES
 
     @property
     def approval_required(self) -> bool:
@@ -78,13 +98,12 @@ Database types:
             arguments: Dict containing optional parameters:
                 - filter: AQL filter expression
                 - sort: Sort expression
+                - limit: Maximum results to return
                 - fields: Field selection
 
         Returns:
             MCP response with offense types list or error
         """
-
-        # Build query parameters
         params = {}
 
         if arguments.get("filter"):
@@ -96,7 +115,10 @@ Database types:
         if arguments.get("fields"):
             params["fields"] = arguments["fields"]
 
-        response = await self.client.get('/siem/offense_types', params=params)
+        limit = arguments.get("limit", 10)
+        headers = build_headers(start=0, end=limit - 1)
+
+        response = await self.client.get(self.endpoint, params=params, headers=headers)
         response.raise_for_status()
 
         offense_types = response.json()

@@ -105,7 +105,11 @@ class TestListOffenseTypesToolExecution:
         result = await tool.execute({})
 
         # Verify client was called correctly
-        tool.client.get.assert_called_once_with('/siem/offense_types', params={})
+        tool.client.get.assert_called_once_with(
+            'siem/offense_types',
+            params={},
+            headers={'Range': 'items=0-9'},
+        )
 
         # Verify MCP result structure
         assert "content" in result
@@ -138,8 +142,9 @@ class TestListOffenseTypesToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/siem/offense_types',
-            params={"filter": "database_type='EVENTS'"}
+            'siem/offense_types',
+            params={"filter": "database_type='EVENTS'"},
+            headers={'Range': 'items=0-9'},
         )
 
     @pytest.mark.asyncio
@@ -163,8 +168,9 @@ class TestListOffenseTypesToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/siem/offense_types',
-            params={"sort": "+name"}
+            'siem/offense_types',
+            params={"sort": "+name"},
+            headers={'Range': 'items=0-9'},
         )
 
     @pytest.mark.asyncio
@@ -187,8 +193,9 @@ class TestListOffenseTypesToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/siem/offense_types',
-            params={"fields": "id,name"}
+            'siem/offense_types',
+            params={"fields": "id,name"},
+            headers={'Range': 'items=0-9'},
         )
 
     @pytest.mark.asyncio
@@ -215,12 +222,13 @@ class TestListOffenseTypesToolExecution:
 
         # Verify client was called with all params
         tool.client.get.assert_called_once_with(
-            '/siem/offense_types',
+            'siem/offense_types',
             params={
                 "filter": "custom=true",
                 "sort": "-id",
-                "fields": "id,name,custom"
-            }
+                "fields": "id,name,custom",
+            },
+            headers={'Range': 'items=0-9'},
         )
 
     @pytest.mark.asyncio

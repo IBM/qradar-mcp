@@ -24,6 +24,7 @@ import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_query_params, build_headers, parse_range_from_limit_offset
+from qradar_mcp.tools import endpoints
 
 
 class ListBuildingBlocksTool(MCPTool):
@@ -39,13 +40,6 @@ class ListBuildingBlocksTool(MCPTool):
 
 Building blocks are reusable rule components that can be referenced by other rules and building blocks.
 
-Examples:
-  - List all building blocks: (no parameters)
-  - Filter by enabled: filter="enabled=true"
-  - Filter by type: filter="type='EVENT'"
-  - Filter by origin: filter="origin='USER'"
-  - Get first 20: limit=20, offset=0
-
 Building block types:
   - EVENT: Individual event-based building blocks
   - FLOW: Network flow-based building blocks
@@ -55,22 +49,39 @@ Building block types:
 Building block origins:
   - SYSTEM: Built-in QRadar building blocks
   - OVERRIDE: Modified system building blocks
-  - USER: Custom user-created building blocks"""
+  - USER: Custom user-created building blocks
+
+=== FIELDS REFERENCE ===
+
+average_capacity: Number
+base_capacity: Number
+base_host_id: Number
+capacity_timestamp: Number
+creation_date: Number
+enabled: Boolean
+id: Number
+identifier: String
+linked_rule_identifier: String
+modification_date: Number
+name: String
+origin: String
+owner: String
+type: String
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description("Optional AQL-style filter expression. Examples: \"enabled=true\", "
-                           "\"type='EVENT'\", \"origin='USER'\"")
+                .description("Optional filter expression.")
             .string("fields")
-                .description("Optional comma-separated list of fields to include. "
-                           "Examples: \"id,name,type\", \"id,enabled,owner\"")
+                .description("Optional comma-separated list of fields to include.")
             .integer("limit")
-                .description("Maximum number of building blocks to return (default: 50, max: 10000)")
+                .description("Maximum number of building blocks to return (default: 10, max: 10000)")
                 .minimum(1)
                 .maximum(10000)
-                .default(50)
+                .default(10)
             .integer("offset")
                 .description("Number of building blocks to skip for pagination (default: 0)")
                 .minimum(0)
@@ -83,6 +94,10 @@ Building block origins:
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.ANALYTICS_BUILDING_BLOCKS
 
     @property
     def approval_required(self) -> bool:
@@ -104,7 +119,7 @@ Building block origins:
         params, headers = self._build_request_params(arguments)
 
         # Make API request
-        response = await self.client.get('/analytics/building_blocks', params=params, headers=headers)
+        response = await self.client.get(self.endpoint, params=params, headers=headers)
         response.raise_for_status()
 
         building_blocks = response.json()

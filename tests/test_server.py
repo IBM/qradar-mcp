@@ -68,7 +68,8 @@ class TestResourceRegistration:
             'aql_events_fields': True,
             'aql_flows_fields': False,
             'aql_functions': True,
-            'aql_generation_guide': False
+            'aql_generation_guide': False,
+            'api_query_syntax': False,
         }
 
         # Mock the resource read methods
@@ -98,13 +99,14 @@ class TestResourceRegistration:
         assert len(summary_calls) == 1, "Should log resource registration summary"
         summary_kwargs = summary_calls[0][1]
 
-        assert summary_kwargs['total_resources'] == 4
+        assert summary_kwargs['total_resources'] == 5
         assert summary_kwargs['registered_count'] == 2
-        assert summary_kwargs['skipped_count'] == 2
+        assert summary_kwargs['skipped_count'] == 3
         assert 'aql_events_fields' in summary_kwargs['registered']
         assert 'aql_functions' in summary_kwargs['registered']
         assert 'aql_flows_fields' in summary_kwargs['skipped']
         assert 'aql_generation_guide' in summary_kwargs['skipped']
+        assert 'api_query_syntax' in summary_kwargs['skipped']
 
 
 if __name__ == "__main__":

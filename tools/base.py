@@ -121,6 +121,17 @@ class MCPTool(ABC):
         """
 
     @property
+    @abstractmethod
+    def endpoint(self) -> str:
+        """
+        Return the QRadar API endpoint path for this tool (without /api/ prefix).
+
+        For collection endpoints use the bare path, e.g. "siem/offenses".
+        For single-resource endpoints use a template with placeholders,
+        e.g. "siem/offenses/{offense_id}".
+        """
+
+    @property
     def tool_group(self) -> str:
         """
         Auto-detect tool group from module path.

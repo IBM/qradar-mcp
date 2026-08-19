@@ -125,7 +125,7 @@ class TestExecution:
         # Verify API call
         tool.client.get.assert_called_once()
         call_args = tool.client.get.call_args
-        assert call_args[0][0] == '/analytics/custom_actions/actions'
+        assert call_args[0][0] == 'analytics/custom_actions/actions'
 
     @pytest.mark.asyncio
     async def test_execution_with_filter(self, tool, mock_custom_actions):

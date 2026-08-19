@@ -2,9 +2,9 @@
   "mcpServers": {
     "qradar-mcp": {
       "type": "streamable-http",
-      "url": "https://<qradar_host>/console/plugins/<app_id>/app_proxy/mcp/sse",
+      "url": "https://<qradar_host>/console/plugins/app_proxy:qradar-mcp-service/mcp",
       "headers": {
-        "SEC": ""
+        "SEC": "<your-authorized-service-token>"
       },
       "disabled": false,
       "alwaysAllow": []

@@ -78,7 +78,7 @@ class TestListQidRecordsExecution:
         assert data[0]["id"] == 63998
 
         call_args = tool.client.get.call_args
-        assert "/data_classification/qid_records" in call_args[0][0]
+        assert "data_classification/qid_records" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_execute_with_filter(self):
@@ -143,7 +143,7 @@ class TestGetQidRecordExecution:
         assert data["severity"] == 4
 
         call_args = tool.client.get.call_args
-        assert "/data_classification/qid_records/63998" in call_args[0][0]
+        assert "data_classification/qid_records/63998" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_execute_missing_id(self):
@@ -196,7 +196,7 @@ class TestCreateQidRecordExecution:
         assert data["id"] == 63998
 
         call_args = tool.client.post.call_args
-        assert "/data_classification/qid_records" in call_args[0][0]
+        assert "data_classification/qid_records" in call_args[0][0]
         body = call_args[1]["data"]
         assert body["log_source_type_id"] == 199
         assert body["name"] == "spp_portscan: Portscan Detected"
@@ -283,7 +283,7 @@ class TestUpdateQidRecordExecution:
         assert data["severity"] == 7
 
         call_args = tool.client.post.call_args
-        assert "/data_classification/qid_records/63998" in call_args[0][0]
+        assert "data_classification/qid_records/63998" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_missing_qid_record_id(self):

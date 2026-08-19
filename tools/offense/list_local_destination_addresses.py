@@ -23,6 +23,8 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
+from qradar_mcp.utils.parameters import build_query_params, build_headers
 
 
 class ListLocalDestinationAddressesTool(MCPTool):
@@ -34,41 +36,50 @@ class ListLocalDestinationAddressesTool(MCPTool):
 
     @property
     def description(self) -> str:
-        return """List local destination IP addresses with offense associations.
+        return """Retrieve local destination IP addresses that are associated with offenses in QRadar SIEM.
 
 Use cases:
-  - Identify most targeted internal assets
-  - Find destinations involved in multiple offenses (cross-offense correlation)
-  - Prioritize asset protection by magnitude
-  - Analyze attack patterns (which sources target which destinations)
-  - Track attack timelines (first/last seen)
-  - Focus security controls on frequently targeted IPs
+  - Identify the most targeted or highest-magnitude internal assets
+  - Find internal hosts involved in multiple offenses (lateral movement analysis)
+  - Analyze targeting timelines using first_event_flow_seen / last_event_flow_seen
+  - Understand destination network classifications (server segment, workstation, DMZ)
+  - Pivot from a destination IP to the source addresses attacking it
 
-Each destination address includes:
-  - Associated offense IDs
-  - Magnitude (calculated severity)
-  - Event/flow counts
-  - First and last seen timestamps
-  - Network classification
-  - Associated source address IDs
+=== FIELDS REFERENCE ===
 
-"Local" indicates internal/protected assets within your network.
+domain_id: Number
+event_flow_count: Number
+first_event_flow_seen: Number
+id: Number
+last_event_flow_seen: Number
+local_destination_ip: String
+magnitude: Number
+network: String
+offense_ids: Array<Number>
+source_address_ids: Array<Number>
 
-Use filtering to find specific destinations (e.g., 'magnitude > 7' or
-'local_destination_ip = \"10.0.1.50\"')."""
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description("Optional AQL filter expression (e.g., 'magnitude > 7')")
+                .description("Optional filter expression.")
+            .integer("limit")
+                .description("Maximum number of results to return (default: 10)")
+                .minimum(1)
+                .default(10)
             .string("fields")
-                .description("Optional comma-separated list of fields to return")
+                .description("Optional comma-separated list of fields to return.")
             .build())
 
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.SIEM_LOCAL_DESTINATION_ADDRESSES
 
     @property
     def approval_required(self) -> bool:
@@ -82,22 +93,22 @@ Use filtering to find specific destinations (e.g., 'magnitude > 7' or
         Args:
             arguments: Dict containing optional parameters:
                 - filter: AQL filter expression
+                - limit: Maximum results to return
                 - fields: Field selection
 
         Returns:
             MCP response with local destination addresses list or error
         """
+        fields = arguments.get("fields")
+        params = build_query_params(
+            filter_expr=arguments.get("filter"),
+            fields=fields.split(",") if fields else None,
+        )
 
-        # Build query parameters
-        params = {}
+        limit = arguments.get("limit", 10)
+        headers = build_headers(start=0, end=limit - 1)
 
-        if arguments.get("filter"):
-            params["filter"] = arguments["filter"]
-
-        if arguments.get("fields"):
-            params["fields"] = arguments["fields"]
-
-        response = await self.client.get('/siem/local_destination_addresses', params=params)
+        response = await self.client.get(self.endpoint, params=params, headers=headers)
         response.raise_for_status()
 
         destination_addresses = response.json()

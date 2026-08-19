@@ -60,11 +60,11 @@ class TestMetadata:
         assert tool.name == "list_saved_searches"
 
     def test_tool_description(self, tool):
-        """Test tool description includes use cases."""
+        """Test tool description includes key guidance."""
         description = tool.description
         assert "saved searches" in description.lower()
-        assert "use cases" in description.lower()
         assert "discover" in description.lower()
+        assert "create_ariel_search" in description
 
     def test_input_schema(self, tool):
         """Test input schema has correct parameters."""
@@ -115,7 +115,7 @@ class TestExecution:
         # Verify API call
         tool.client.get.assert_called_once()
         call_args = tool.client.get.call_args
-        assert call_args[0][0] == '/ariel/saved_searches'
+        assert call_args[0][0] == 'ariel/saved_searches'
 
     @pytest.mark.asyncio
     async def test_execution_with_filter(self, tool, mock_saved_searches):

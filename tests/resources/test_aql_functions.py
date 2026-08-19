@@ -37,9 +37,9 @@ class TestAQLFunctionsResource:
     @pytest.mark.asyncio
     async def test_read_success_with_categorization(self, mock_client_class, mock_log_mcp):
         """Test successful read with function categorization."""
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = [
+        events_response = Mock()
+        events_response.status_code = 200
+        events_response.json.return_value = [
             {
                 'name': 'LOGSOURCENAME',
                 'description': 'Get log source name',
@@ -69,16 +69,25 @@ class TestAQLFunctionsResource:
                 'database_type': 'EVENTS'
             }
         ]
+        flows_response = Mock()
+        flows_response.status_code = 200
+        flows_response.json.return_value = []
 
         mock_client = Mock()
-        mock_client.get = AsyncMock(return_value=mock_response)
+        mock_client.get = AsyncMock(side_effect=[events_response, flows_response])
         mock_client_class.return_value = mock_client
 
         resource = AQLFunctionsResource()
         result = await resource.read()
 
-        # Verify API call
-        mock_client.get.assert_called_once_with('ariel/functions')
+        # Verify API calls
+        assert mock_client.get.await_count == 2
+        mock_client.get.assert_any_call(
+            'ariel/functions', params={'database': 'events'}
+        )
+        mock_client.get.assert_any_call(
+            'ariel/functions', params={'database': 'flows'}
+        )
         mock_log_mcp.assert_called()
 
         # Verify result structure
@@ -123,9 +132,9 @@ class TestAQLFunctionsResource:
         aggregation_funcs = ['AVG', 'MAX', 'MIN', 'SUM', 'COUNT', 'DISTINCTCOUNT',
                             'UNIQUECOUNT', 'FIRST', 'LAST']
 
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = [
+        events_response = Mock()
+        events_response.status_code = 200
+        events_response.json.return_value = [
             {
                 'name': func,
                 'description': f'{func} function',
@@ -135,9 +144,12 @@ class TestAQLFunctionsResource:
             }
             for func in aggregation_funcs
         ]
+        flows_response = Mock()
+        flows_response.status_code = 200
+        flows_response.json.return_value = []
 
         mock_client = Mock()
-        mock_client.get = AsyncMock(return_value=mock_response)
+        mock_client.get = AsyncMock(side_effect=[events_response, flows_response])
         mock_client_class.return_value = mock_client
 
         resource = AQLFunctionsResource()
@@ -156,12 +168,15 @@ class TestAQLFunctionsResource:
     @pytest.mark.asyncio
     async def test_read_empty_response(self, mock_client_class, mock_log_mcp):
         """Test read when API returns empty list."""
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = []
+        events_response = Mock()
+        events_response.status_code = 200
+        events_response.json.return_value = []
+        flows_response = Mock()
+        flows_response.status_code = 200
+        flows_response.json.return_value = []
 
         mock_client = Mock()
-        mock_client.get = AsyncMock(return_value=mock_response)
+        mock_client.get = AsyncMock(side_effect=[events_response, flows_response])
         mock_client_class.return_value = mock_client
 
         resource = AQLFunctionsResource()
@@ -191,7 +206,7 @@ class TestAQLFunctionsResource:
         with pytest.raises(RuntimeError) as exc_info:
             await resource.read()
 
-        assert "Failed to fetch AQL functions" in str(exc_info.value)
+        assert "Failed to fetch AQL functions for events" in str(exc_info.value)
         assert "500" in str(exc_info.value)
 
     @patch('qradar_mcp.resources.aql_functions.log_mcp')
@@ -212,7 +227,7 @@ class TestAQLFunctionsResource:
         with pytest.raises(RuntimeError) as exc_info:
             await resource.read()
 
-        assert "Failed to fetch AQL functions" in str(exc_info.value)
+        assert "Failed to fetch AQL functions for events" in str(exc_info.value)
         assert "401" in str(exc_info.value)
 
     @patch('qradar_mcp.resources.aql_functions.log_mcp')
@@ -237,9 +252,9 @@ class TestAQLFunctionsResource:
     @pytest.mark.asyncio
     async def test_read_mixed_case_aggregation_functions(self, mock_client_class, mock_log_mcp):
         """Test that aggregation functions are matched case-insensitively."""
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = [
+        events_response = Mock()
+        events_response.status_code = 200
+        events_response.json.return_value = [
             {
                 'name': 'count',  # lowercase
                 'description': 'Count function',
@@ -255,9 +270,12 @@ class TestAQLFunctionsResource:
                 'database_type': 'EVENTS'
             }
         ]
+        flows_response = Mock()
+        flows_response.status_code = 200
+        flows_response.json.return_value = []
 
         mock_client = Mock()
-        mock_client.get = AsyncMock(return_value=mock_response)
+        mock_client.get = AsyncMock(side_effect=[events_response, flows_response])
         mock_client_class.return_value = mock_client
 
         resource = AQLFunctionsResource()

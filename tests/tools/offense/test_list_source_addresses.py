@@ -34,8 +34,8 @@ class TestListSourceAddressesTool:
     def test_tool_description(self):
         """Test that tool has correct description."""
         tool = ListSourceAddressesTool()
-        assert "List source IP addresses" in tool.description
-        assert "offense associations" in tool.description
+        assert "source IP addresses" in tool.description
+        assert "offenses" in tool.description
 
     def test_input_schema_structure(self):
         """Test that input schema has correct structure."""
@@ -46,7 +46,7 @@ class TestListSourceAddressesTool:
         assert "properties" in schema
 
         # Check all expected properties exist
-        expected_props = ["filter", "fields"]
+        expected_props = ["filter", "limit", "offset", "fields"]
         for prop in expected_props:
             assert prop in schema["properties"]
 
@@ -59,13 +59,17 @@ class TestListSourceAddressesTool:
         assert schema["properties"]["filter"]["type"] == "string"
         assert schema["properties"]["fields"]["type"] == "string"
 
+        # Check integer properties
+        assert schema["properties"]["limit"]["type"] == "integer"
+        assert schema["properties"]["offset"]["type"] == "integer"
+
     def test_to_mcp_tool_definition(self):
         """Test converting tool to MCP definition."""
         tool = ListSourceAddressesTool()
         definition = tool.to_mcp_tool_definition()
 
         assert definition["name"] == "list_source_addresses"
-        assert "List source IP addresses" in definition["description"]
+        assert "source IP addresses" in definition["description"]
         assert "inputSchema" in definition
 
 
@@ -112,7 +116,9 @@ class TestListSourceAddressesToolExecution:
         result = await tool.execute({})
 
         # Verify client was called correctly
-        tool.client.get.assert_called_once_with('/siem/source_addresses', params={})
+        tool.client.get.assert_called_once_with(
+            'siem/source_addresses', params={}, headers={}
+        )
 
         # Verify MCP result structure
         assert "content" in result
@@ -144,8 +150,9 @@ class TestListSourceAddressesToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/siem/source_addresses',
-            params={"filter": "magnitude>4"}
+            'siem/source_addresses',
+            params={"filter": "magnitude>4"},
+            headers={},
         )
 
     @pytest.mark.asyncio
@@ -168,8 +175,9 @@ class TestListSourceAddressesToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/siem/source_addresses',
-            params={"fields": "id,source_ip,magnitude"}
+            'siem/source_addresses',
+            params={"fields": "id,source_ip,magnitude"},
+            headers={},
         )
 
     @pytest.mark.asyncio
@@ -195,11 +203,12 @@ class TestListSourceAddressesToolExecution:
 
         # Verify client was called with all params
         tool.client.get.assert_called_once_with(
-            '/siem/source_addresses',
+            'siem/source_addresses',
             params={
                 "filter": "magnitude>3",
                 "fields": "id,source_ip,magnitude,offense_ids"
-            }
+            },
+            headers={},
         )
 
     @pytest.mark.asyncio

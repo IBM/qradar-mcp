@@ -74,7 +74,7 @@ class TestListLowLevelCategoriesExecution:
         assert data[0]["severity"] == 0
 
         call_args = tool.client.get.call_args
-        assert "/data_classification/low_level_categories" in call_args[0][0]
+        assert "data_classification/low_level_categories" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_execute_filter_by_high_level_category(self):
@@ -139,7 +139,7 @@ class TestGetLowLevelCategoryExecution:
         assert data["high_level_category_id"] == 19000
 
         call_args = tool.client.get.call_args
-        assert "/data_classification/low_level_categories/19001" in call_args[0][0]
+        assert "data_classification/low_level_categories/19001" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_execute_missing_id(self):

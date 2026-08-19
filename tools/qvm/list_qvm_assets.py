@@ -24,6 +24,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class ListQvmAssetsTool(MCPTool):
@@ -49,11 +50,9 @@ Use cases:
   - Vulnerability coverage analysis
   - Identify high-risk assets
 
-Requirements:
-  - QVM (QRadar Vulnerability Manager) module
-  - QVM license active
+Requires an active licensed QVM (QRadar Vulnerability Manager) module.
 
-Note: Returns empty list if QVM module not installed."""
+Note: Returns empty list if QVM not available."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -70,6 +69,10 @@ Note: Returns empty list if QVM module not installed."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.QVM_ASSETS
 
     @property
     def approval_required(self) -> bool:
@@ -100,7 +103,7 @@ Note: Returns empty list if QVM module not installed."""
             params["filters"] = arguments["filters"]
 
         # Make API call
-        response = await self.client.get('/qvm/assets', params=params)
+        response = await self.client.get(self.endpoint, params=params)
         response.raise_for_status()
 
         assets = response.json()

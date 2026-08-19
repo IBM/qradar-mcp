@@ -20,12 +20,47 @@ Provides dynamic access to QRadar AQL field definitions for events and flows tab
 """
 
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from qradar_mcp.utils.mcp_logger import log_mcp
 from qradar_mcp.client.qradar_rest_client import QRadarRestClient
 
 from .base import MCPResource
+
+
+def _format_fields_content(table_name: str, columns: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Build MCP content payload for AQL field resources."""
+    fields = []
+    canonical_fields = []
+    canonical_names = set()
+
+    for column in columns:
+        field_name = column.get('name', '')
+        field_info = {
+            "name": field_name,
+            "type": column.get('type', ''),
+            "description": column.get('description', ''),
+            "argument_type": column.get('argument_type')
+        }
+        fields.append(field_info)
+
+        lowered_name = field_name.lower()
+        if lowered_name and lowered_name not in canonical_names:
+            canonical_fields.append(field_info)
+            canonical_names.add(lowered_name)
+
+    return {
+        "table": table_name,
+        "field_count": len(fields),
+        "canonical_field_count": len(canonical_fields),
+        "canonical_fields": canonical_fields,
+        "fields": fields,
+        "usage": (
+            "Use these field names in SELECT, WHERE, GROUP BY, and ORDER BY "
+            f"clauses when querying the {table_name} table. Prefer "
+            "canonical_fields first when multiple aliases look similar."
+        )
+    }
 
 
 class AQLEventsFieldsResource(MCPResource):
@@ -36,7 +71,7 @@ class AQLEventsFieldsResource(MCPResource):
 
     @property
     def uri(self) -> str:
-        return "qradar://aql/fields/events"
+        return "qradar://aql/events/fields"
 
     @property
     def name(self) -> str:
@@ -67,26 +102,9 @@ class AQLEventsFieldsResource(MCPResource):
                 )
 
             data = response.json()
-
-            # Extract and format field information
-            fields = []
-            if 'columns' in data:
-                for column in data['columns']:
-                    field_info = {
-                        "name": column.get('name', ''),
-                        "type": column.get('type', ''),
-                        "description": column.get('description', ''),
-                        "argument_type": column.get('argument_type')
-                    }
-                    fields.append(field_info)
-
-            # Format as MCP resource content
-            content = {
-                "table": "events",
-                "field_count": len(fields),
-                "fields": fields,
-                "usage": "Use these field names in SELECT, WHERE, GROUP BY, and ORDER BY clauses when querying the events table."
-            }
+            content = _format_fields_content(
+                "events", data.get('columns', [])
+            )
 
             return {
                 "contents": [
@@ -111,7 +129,7 @@ class AQLFlowsFieldsResource(MCPResource):
 
     @property
     def uri(self) -> str:
-        return "qradar://aql/fields/flows"
+        return "qradar://aql/flows/fields"
 
     @property
     def name(self) -> str:
@@ -142,26 +160,9 @@ class AQLFlowsFieldsResource(MCPResource):
                 )
 
             data = response.json()
-
-            # Extract and format field information
-            fields = []
-            if 'columns' in data:
-                for column in data['columns']:
-                    field_info = {
-                        "name": column.get('name', ''),
-                        "type": column.get('type', ''),
-                        "description": column.get('description', ''),
-                        "argument_type": column.get('argument_type')
-                    }
-                    fields.append(field_info)
-
-            # Format as MCP resource content
-            content = {
-                "table": "flows",
-                "field_count": len(fields),
-                "fields": fields,
-                "usage": "Use these field names in SELECT, WHERE, GROUP BY, and ORDER BY clauses when querying the flows table."
-            }
+            content = _format_fields_content(
+                "flows", data.get('columns', [])
+            )
 
             return {
                 "contents": [

@@ -23,6 +23,7 @@ from typing import Dict, Any, Optional, List
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 from qradar_mcp.utils.parameters import (
     build_query_params,
     build_headers,
@@ -43,43 +44,83 @@ class ListOffensesTool(MCPTool):
     def description(self) -> str:
         return """List offenses from QRadar SIEM with optional filtering, sorting, and pagination.
 
-Filterable Fields:
-  The following fields support filtering:
-  - status (OPEN, CLOSED, HIDDEN)
-  - severity (numeric 1-10)
-  - magnitude (numeric)
-  - category_count, source_count, destination_count (numeric)
-  - start_time, last_updated_time (epoch milliseconds)
-  - assigned_to (username string)
+An offense is a correlated security incident created when one or more rules fire.
+Use this tool to triage active threats, review recent activity, or scope an investigation.
 
-  NOT FILTERABLE: description, offense_type (use other fields instead)
-
-Severity and Magnitude Mapping:
-  - Low: 1-3
-  - Medium: 4-7
-  - High/Critical: 8-10
+Offense Status:
+  - OPEN: Active, unresolved offenses
+  - CLOSED: Resolved offenses
+  - HIDDEN: Suppressed offenses
 
 Examples:
-  - List all open offenses: filter="status='OPEN'"
-  - List high/critical severity: filter="severity > 7"
-  - Open high-priority offenses: filter="status='OPEN' and severity > 7"
-  - Sort by severity descending: sort="-severity"
-  - Get first 50 offenses: limit=50, offset=0"""
+  - List 50 open offenses: filter with `status="OPEN"`, use `limit=50` and ` offset=0`
+  - High severity open offenses: filter="status="OPEN" and severity > 7"
+  - Sort by most recent offenses: sort with -start_time
+  - Sort offenses severity descending: sort with -severity
+
+=== FIELDS REFERENCE ===
+
+last_persisted_time: Number
+username_count: Number
+description: String
+rules: Array<Object>
+  rules(id): Number
+  rules(type): String
+event_count: Number
+flow_count: Number
+assigned_to: String
+security_category_count: Number
+follow_up: Boolean
+source_address_ids: Array<Number>
+source_count: Number
+inactive: Boolean
+protected: Boolean
+closing_user: String
+destination_networks: Array<String>
+source_network: String
+category_count: Number
+close_time: Number
+remote_destination_count: Number
+start_time: Number
+magnitude: Number
+last_updated_time: Number
+credibility: Number
+id: Number
+categories: Array<String>
+severity: Number
+policy_category_count: Number
+log_sources: Array<Object>
+  log_sources(type_name): String
+  log_sources(type_id): Number
+  log_sources(name): String
+  log_sources(id): Number
+closing_reason_id: Number
+device_count: Number
+first_persisted_time: Number
+offense_type: Number
+relevance: Number
+domain_id: Number
+offense_source: String
+local_destination_address_ids: Array<Number>
+local_destination_count: Number
+status: String
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description("AQL-style filter expression. Examples: \"status='OPEN'\", \"severity > 5\", \"status='OPEN' and severity > 7\"")
+                .description('Optional filter expression."')
             .string("sort")
-                .description("Sort expression. Use +field for ascending, -field for descending. Examples: \"+severity\", \"-start_time\", \"+severity,-start_time\"")
+                .description('Sort expression.')
             .string("fields")
-                .description("Comma-separated list of fields to include. Examples: \"id,description,severity\", \"id,status,assigned_to\"")
+                .description('Comma-separated list of fields to include.')
             .integer("limit")
-                .description("Maximum number of offenses to return (default: 50, max: 10000)")
+                .description("Maximum number of offenses to return (default: 10, max: 10000)")
                 .minimum(1)
                 .maximum(10000)
-                .default(50)
+                .default(10)
             .integer("offset")
                 .description("Number of offenses to skip for pagination (default: 0)")
                 .minimum(0)
@@ -92,6 +133,10 @@ Examples:
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.SIEM_OFFENSES
 
     @property
     def approval_required(self) -> bool:
@@ -160,7 +205,7 @@ Examples:
     async def _fetch_offenses(self, params: Dict[str, Any], headers: Dict[str, str]) -> tuple:
         """Fetch offenses from QRadar API."""
         response = await self.client.get(
-            api_path="siem/offenses",
+            api_path=self.endpoint,
             params=params,
             headers=headers
         )

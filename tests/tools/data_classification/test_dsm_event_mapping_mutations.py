@@ -80,7 +80,7 @@ class TestCreateDsmEventMappingExecution:
         assert data["id"] == 1001
 
         call_args = tool.client.post.call_args
-        assert "/data_classification/dsm_event_mappings" in call_args[0][0]
+        assert "data_classification/dsm_event_mappings" in call_args[0][0]
         body = call_args[1]["data"]
         assert body["log_source_type_id"] == 123
         assert body["log_source_event_id"] == "LoginFailure"
@@ -152,7 +152,7 @@ class TestUpdateDsmEventMappingExecution:
         assert data["qid_record_id"] == 99999
 
         call_args = tool.client.post.call_args
-        assert "/data_classification/dsm_event_mappings/1001" in call_args[0][0]
+        assert "data_classification/dsm_event_mappings/1001" in call_args[0][0]
         assert call_args[1]["data"]["qid_record_id"] == 99999
 
     @pytest.mark.asyncio

@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class GetHighLevelCategoryTool(MCPTool):
@@ -60,6 +61,10 @@ Returns:
         return "GET"
 
     @property
+    def endpoint(self) -> str:
+        return endpoints.DATA_CLASS_HIGH_LEVEL_CATEGORY
+
+    @property
     def approval_required(self) -> bool:
         """GET operation - does not require approval."""
         return False
@@ -85,7 +90,7 @@ Returns:
             params['fields'] = fields
 
         response = await self.client.get(
-            f'/data_classification/high_level_categories/{int(high_level_category_id)}',
+            self.endpoint.format(high_level_category_id=int(high_level_category_id)),
             params=params if params else None
         )
         response.raise_for_status()

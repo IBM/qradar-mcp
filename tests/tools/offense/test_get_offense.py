@@ -86,7 +86,7 @@ class TestGetOffenseTool:
         result = await tool.execute({"offense_id": 123})
 
         # Verify client was called correctly
-        tool.client.get.assert_called_once_with('/siem/offenses/123')
+        tool.client.get.assert_called_once_with('siem/offenses/123')
 
         # Verify result
         assert "content" in result
@@ -165,7 +165,7 @@ class TestGetOffenseTool:
 
         result = await tool.execute({"offense_id": 0})
 
-        tool.client.get.assert_called_once_with('/siem/offenses/0')
+        tool.client.get.assert_called_once_with('siem/offenses/0')
         assert "isError" not in result
 
     @pytest.mark.asyncio
@@ -183,7 +183,7 @@ class TestGetOffenseTool:
 
         result = await tool.execute({"offense_id": large_id})
 
-        tool.client.get.assert_called_once_with(f'/siem/offenses/{large_id}')
+        tool.client.get.assert_called_once_with(f'siem/offenses/{large_id}')
         assert "isError" not in result
 
     @pytest.mark.asyncio

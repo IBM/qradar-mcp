@@ -24,6 +24,7 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
     "pytest-xdist>=3.0.0",
+    "qpylib>=2.0.9",
 ]
 
 [project.urls]
@@ -32,6 +33,9 @@ homepage = "https://github.com/IBM/qradar-mcp"
 [tool.setuptools]
 packages = ["qradar_mcp", "qradar_mcp.client", "qradar_mcp.tools", "qradar_mcp.tools.analytics", "qradar_mcp.tools.ariel", "qradar_mcp.tools.asset", "qradar_mcp.tools.config", "qradar_mcp.tools.data_classification", "qradar_mcp.tools.forensics", "qradar_mcp.tools.log_source", "qradar_mcp.tools.offense", "qradar_mcp.tools.qvm", "qradar_mcp.tools.reference_data", "qradar_mcp.tools.services", "qradar_mcp.tools.system", "qradar_mcp.utils", "qradar_mcp.resources"]
 package-dir = {"qradar_mcp" = "."}
+
+[tool.setuptools.package-data]
+qradar_mcp = ["feature_toggles.json"]
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # Pylint Configuration
@@ -98,7 +102,7 @@ exclude_lines = [
 ]
 
 [tool.coverage.run]
-omit = ["*/tests/*", "setup.py", "version.py", "dev.py"]
+omit = ["*/tests/*", "setup.py", "version.py", "dev.py", "*/utils/generate_list_tool_schemas.py"]
 source = ["."]
 parallel = true
 

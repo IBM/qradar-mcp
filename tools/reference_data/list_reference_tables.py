@@ -25,6 +25,7 @@ from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_query_params, build_headers, parse_range_from_limit_offset
 from qradar_mcp.utils.formatters import format_reference_sets_table
+from qradar_mcp.tools import endpoints
 
 
 class ListReferenceTables(MCPTool):
@@ -36,28 +37,34 @@ class ListReferenceTables(MCPTool):
 
     @property
     def description(self) -> str:
-        return """List reference data tables from QRadar SIEM with filtering, sorting, and pagination.
+        return """List reference data tables from QRadar SIEM with optional filtering, sorting, and pagination.
 
-Use cases:
-  - List all correlation tables
-  - Filter tables by name pattern or element type
-  - Monitor table sizes and growth
-  - Find tables by namespace
+Reference tables store two-dimensional data such as IP-to-port service mappings, user-to-asset access matrices, or other multi-key enrichment data.
 
-Reference tables store 2D data structures for advanced threat intelligence and correlation.
-Common uses: IP × Port service tables, user × asset access matrices, multi-dimensional IOC tracking.
+=== FIELDS REFERENCE ===
 
-Supports filtering, sorting, pagination, and field selection."""
+collection_id: Number
+creation_time: Number
+description: String
+element_type: String
+key_label: String
+key_name_types: Object
+  key_name_types(String): String
+name: String
+namespace: String
+number_of_elements: Number
+time_to_live: String
+timeout_type: String
+
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .string("filter")
-                .description("Optional AQL filter (e.g., \"name LIKE 'service%'\", "
-                           "\"element_type='IP'\", \"number_of_elements > 100\")")
+                .description("Optional AQL-style filter expression.")
             .string("sort")
-                .description("Optional sort expression (e.g., \"+name\", \"-creation_time\", "
-                           "\"+element_type,-name\")")
+                .description("Optional sort expression.")
             .integer("limit")
                 .description("Maximum number of tables to return (default: 50, max: 10000)")
                 .minimum(1)
@@ -66,8 +73,7 @@ Supports filtering, sorting, pagination, and field selection."""
                 .description("Number of tables to skip for pagination (default: 0)")
                 .minimum(0)
             .string("fields")
-                .description("Optional comma-separated list of fields to return "
-                           "(e.g., \"name,element_type,number_of_elements\")")
+                .description("Optional comma-separated list of fields to return.")
             .boolean("format_output")
                 .description("Format output as human-readable table (default: false)")
                 .default(False)
@@ -76,6 +82,10 @@ Supports filtering, sorting, pagination, and field selection."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_TABLES
 
     @property
     def approval_required(self) -> bool:
@@ -99,7 +109,7 @@ Supports filtering, sorting, pagination, and field selection."""
 
         # Make API request
         response = await self.client.get(
-            '/reference_data/tables',
+            self.endpoint,
             headers=headers,
             params=params
         )

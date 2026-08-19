@@ -24,6 +24,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class GetCaseTool(MCPTool):
@@ -69,6 +70,10 @@ Note: Only accessible if user has FORENSICS role or is assigned to the case."""
         return "GET"
 
     @property
+    def endpoint(self) -> str:
+        return endpoints.FORENSICS_CASE
+
+    @property
     def approval_required(self) -> bool:
         """GET operation - does not require approval."""
         return False
@@ -95,7 +100,7 @@ Note: Only accessible if user has FORENSICS role or is assigned to the case."""
             params["fields"] = arguments["fields"]
 
         # Make API call
-        response = await self.client.get(f'/forensics/case_management/cases/{int(case_id)}',
+        response = await self.client.get(self.endpoint.format(case_id=int(case_id)),
                             params=params)
         response.raise_for_status()
 

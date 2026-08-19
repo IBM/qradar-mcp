@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 from qradar_mcp.utils.parameters import (
     build_query_params,
     build_headers,
@@ -41,25 +42,18 @@ class ListServersTool(MCPTool):
     def description(self) -> str:
         return """List all QRadar server hosts in the deployment.
 
-Retrieves information about all servers including hostname, IP address, status,
-and managed host ID. Useful for understanding deployment topology and monitoring
-server health.
+Use this to review deployment topology and server health. In distributed
+deployments, this includes the console, processors, and other appliances.
 
-Use cases:
-  - Deployment topology mapping and documentation
-  - Health monitoring across distributed deployments
-  - Capacity planning and resource allocation
-  - Troubleshooting distributed deployment issues
-  - Compliance and architecture documentation
+=== FIELDS REFERENCE ===
 
-Example:
-  list_servers()
-  list_servers(filter='status="ACTIVE"')
-  list_servers(limit=10, offset=0)
-  list_servers(fields="hostname,private_ip,status")
+hostname: String
+managed_host_id: Number
+private_ip: String
+server_id: Number
+status: String
 
-Note: Returns all servers in the QRadar deployment. In distributed deployments,
-this includes console, processors, and other appliances."""
+"""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -67,7 +61,7 @@ this includes console, processors, and other appliances."""
             .string("fields")
                 .description("Optional comma-separated list of fields to return")
             .string("filter")
-                .description("Optional filter expression (e.g., 'status=\"ACTIVE\"')")
+                .description("Optional filter expression.")
             .integer("limit")
                 .description("Maximum number of servers to return (1-100)")
                 .minimum(1)
@@ -80,6 +74,10 @@ this includes console, processors, and other appliances."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.SYSTEM_SERVERS
 
     @property
     def approval_required(self) -> bool:
@@ -114,7 +112,7 @@ this includes console, processors, and other appliances."""
             headers = build_headers(start=start, end=end)
 
         # Make API call
-        response = await self.client.get('/system/servers', params=params, headers=headers)
+        response = await self.client.get(self.endpoint, params=params, headers=headers)
         response.raise_for_status()
 
         servers = response.json()

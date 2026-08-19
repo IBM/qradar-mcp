@@ -22,6 +22,7 @@ Deletes a reference data set from QRadar SIEM.
 from typing import Dict, Any
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class DeleteReferenceSetTool(MCPTool):
@@ -57,6 +58,10 @@ Note: You cannot delete a reference set that is currently being used by active r
     def http_verb(self) -> str:
         return "DELETE"
 
+    @property
+    def endpoint(self) -> str:
+        return endpoints.REFERENCE_DATA_COLLECTIONS_SET
+
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the delete_reference_set tool.
@@ -74,7 +79,7 @@ Note: You cannot delete a reference set that is currently being used by active r
 
 
         # Make API request
-        response = await self.client.delete(f'/reference_data_collections/sets/{set_id}')
+        response = await self.client.delete(self.endpoint.format(name=set_id))
 
         response.raise_for_status()
         success_msg = f"Reference set {set_id} deleted successfully"

@@ -24,6 +24,7 @@ import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.utils.parameters import build_query_params
+from qradar_mcp.tools import endpoints
 
 
 class DeleteSavedSearchTool(MCPTool):
@@ -37,30 +38,17 @@ class DeleteSavedSearchTool(MCPTool):
     def description(self) -> str:
         return """Delete an Ariel saved search with dependency checking.
 
-Use cases:
-  - Remove obsolete or unused saved searches
-  - Delete duplicate or incorrect searches
-  - Remove searches containing sensitive queries
-  - Clean up before recreating with different owner
-  - Maintain compliance with data retention policies
+Deletion fails with CONFLICT if the search is still referenced by dashboards,
+reports, rules, or other searches.
 
-Dependency checking:
-  QRadar checks for dependencies before deletion:
-  - Dashboards using the search
-  - Reports referencing the search
-  - Rules using the search
-  - Other searches referencing this search
-
-  If dependencies exist, deletion fails with CONFLICT status.
-
-Note: Returns async task status (202 Accepted). User must own search or have admin rights.
-Task status values: QUEUED, PROCESSING, COMPLETED, CONFLICT, EXCEPTION."""
+Returns an async task status. The user must own the search or have admin
+rights."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
         return (schema()
             .integer("search_id")
-                .description("ID of the saved search to delete")
+                .description("ID of the saved search to delete. Get this from list_saved_searches or get_saved_search")
                 .minimum(1)
                 .required()
             .string("fields")
@@ -70,6 +58,10 @@ Task status values: QUEUED, PROCESSING, COMPLETED, CONFLICT, EXCEPTION."""
     @property
     def http_verb(self) -> str:
         return "DELETE"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.ARIEL_SAVED_SEARCH
 
     async def _execute_impl(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -95,7 +87,7 @@ Task status values: QUEUED, PROCESSING, COMPLETED, CONFLICT, EXCEPTION."""
         )
 
         # Make API call
-        response = await self.client.delete(f'/ariel/saved_searches/{int(search_id)}', params=params)
+        response = await self.client.delete(self.endpoint.format(search_id=int(search_id)), params=params)
         response.raise_for_status()
 
         data = response.json()

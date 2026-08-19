@@ -61,7 +61,7 @@ class TestListOffensesTool:
         assert limit_schema["type"] == "integer"
         assert limit_schema["minimum"] == 1
         assert limit_schema["maximum"] == 10000
-        assert limit_schema["default"] == 50
+        assert limit_schema["default"] == 10
 
         # Check offset constraints
         offset_schema = schema["properties"]["offset"]

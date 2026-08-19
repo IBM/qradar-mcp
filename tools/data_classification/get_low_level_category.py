@@ -23,6 +23,7 @@ from typing import Dict, Any
 import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class GetLowLevelCategoryTool(MCPTool):
@@ -62,6 +63,10 @@ Returns:
         return "GET"
 
     @property
+    def endpoint(self) -> str:
+        return endpoints.DATA_CLASS_LOW_LEVEL_CATEGORY
+
+    @property
     def approval_required(self) -> bool:
         """GET operation - does not require approval."""
         return False
@@ -87,7 +92,7 @@ Returns:
             params['fields'] = fields
 
         response = await self.client.get(
-            f'/data_classification/low_level_categories/{int(low_level_category_id)}',
+            self.endpoint.format(low_level_category_id=int(low_level_category_id)),
             params=params if params else None
         )
         response.raise_for_status()

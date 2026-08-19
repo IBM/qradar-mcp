@@ -113,7 +113,7 @@ class TestListLogSourceTypesToolExecution:
 
         # Verify client was called with correct params
         tool.client.get.assert_called_once_with(
-            '/config/event_sources/log_source_management/log_source_types',
+            'config/event_sources/log_source_management/log_source_types',
             params={"fields": "id,name"},
             headers={}
         )

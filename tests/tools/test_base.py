@@ -59,6 +59,10 @@ class ConcreteTool(MCPTool):
     def http_verb(self) -> str:
         return "GET"
 
+    @property
+    def endpoint(self) -> str:
+        return "test/tool"
+
     async def _execute_impl(self, arguments):
         param1 = arguments.get("param1")
         if not param1:
@@ -163,6 +167,10 @@ class MinimalTool(MCPTool):
     @property
     def http_verb(self) -> str:
         return "POST"
+
+    @property
+    def endpoint(self) -> str:
+        return "test/endpoint"
 
     async def _execute_impl(self, arguments):
         return self.create_success_response("Done")

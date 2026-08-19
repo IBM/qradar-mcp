@@ -57,8 +57,8 @@ You MUST follow this workflow for every AQL query:
 
 ### 1. Access Field Metadata (REQUIRED)
 Before generating ANY query, read these resources:
-- `qradar://aql/fields/events` - For event-based queries (ALWAYS read before events queries)
-- `qradar://aql/fields/flows` - For network flow queries (ALWAYS read before flows queries)
+- `qradar://aql/events/fields` - For event-based queries (ALWAYS read before events queries)
+- `qradar://aql/flows/fields` - For network flow queries (ALWAYS read before flows queries)
 - `qradar://aql/functions` - For available functions (read when using functions)
 
 ### 2. Determine Query Type

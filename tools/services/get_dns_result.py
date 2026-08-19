@@ -22,6 +22,7 @@ Retrieves DNS lookup results by task ID.
 from typing import Dict, Any
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
+from qradar_mcp.tools import endpoints
 
 
 class GetDnsResultTool(MCPTool):
@@ -35,20 +36,14 @@ class GetDnsResultTool(MCPTool):
     def description(self) -> str:
         return """Retrieve DNS lookup results by task ID.
 
-Use this tool to check the status and retrieve results of a DNS lookup
-initiated with the dns_lookup tool.
+Use this after dns_lookup to check lookup status and retrieve results.
 
 Returns:
   - Task status (QUEUED, PROCESSING, COMPLETED, EXCEPTION)
   - Hostname (when status is COMPLETED)
   - Error message (when status is EXCEPTION)
 
-Use cases:
-  - Retrieve completed DNS lookup results
-  - Monitor long-running lookups
-  - Handle failed lookups gracefully
-
-Note: If status is PROCESSING or QUEUED, retry after a few seconds."""
+If status is PROCESSING or QUEUED, retry after a few seconds."""
 
     @property
     def input_schema(self) -> Dict[str, Any]:
@@ -64,6 +59,10 @@ Note: If status is PROCESSING or QUEUED, retry after a few seconds."""
     @property
     def http_verb(self) -> str:
         return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return endpoints.SERVICES_DNS_LOOKUP
 
     @property
     def approval_required(self) -> bool:
@@ -91,7 +90,7 @@ Note: If status is PROCESSING or QUEUED, retry after a few seconds."""
             params["fields"] = arguments["fields"]
 
         # Make GET request
-        response = await self.client.get(f'/services/dns_lookups/{int(task_id)}', params=params)
+        response = await self.client.get(self.endpoint.format(task_id=int(task_id)), params=params)
         response.raise_for_status()
 
         task_data = response.json()
