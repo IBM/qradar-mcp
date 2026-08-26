@@ -20,7 +20,7 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - PYTHONUNBUFFERED=1
     volumes:
-      # Mount config for local run (optional)
+      # Mount config for local run (optional -  comment out for production)
       - ./config.json:/opt/app-root/qradar-mcp/config.json:ro
 
       # Mount logs directory
