@@ -7,7 +7,11 @@ An open-source Model Context Protocol (MCP) server implementation for IBM QRadar
 
 ## Overview
 
-This MCP server provides AI agents with the ability to interact with IBM QRadar SIEM through a comprehensive set of tools covering offenses, reference data, assets, log sources, analytics, and more. It can be deployed as a standalone service using Docker or run locally.
+The QRadar MCP Server provides AI agents with standardized access to IBM QRadar SIEM capabilities, including offenses, events and flows, reference data, assets, analytics, configuration, and other security context.
+
+The server can be deployed standalone using Docker or run locally for development. When used with IBM QRadar Investigation Assistant (QIA), the MCP Server can also be exposed directly through the QIA application using QRadar App Framework namespaces, enabling external MCP-compatible clients to connect without requiring deployment of a separate QRadar MCP application.
+
+This enables integrations with MCP-compatible AI platforms and agents while keeping QRadar access and MCP capabilities within the QIA deployment model..
 
 ## Project Structure
 
