@@ -55,8 +55,11 @@ The QRadar MCP Server can be deployed in multiple ways depending on your needs.
 
 ### Option 1: Docker Compose (Recommended)
 
-The easiest way to deploy the MCP server is using Docker Compose.
+The easiest way to deploy the MCP server is using Docker Compose. The server can be run in two modes:
+* **Local Single User Mode**: Utilizes `config.json` on the disk to authenticate all incoming requests (useful for local development).
+* **Multi User Mode (App Mode)**: Does not use or mount `config.json`. Every client request must supply its own QRadar credentials via headers (`SEC` and `QRadarCSRF`, or Authorized service token as `SEC`).
 
+#### Setup for Local Single User Mode:
 1. **Clone the repository and navigate to the directory:**
    ```bash
    git clone https://github.com/IBM/qradar-mcp.git
@@ -70,7 +73,6 @@ The easiest way to deploy the MCP server is using Docker Compose.
    ```
 
 3. **Set environment variables:**
-
    Create a `.env` file:
    ```bash
    cat > .env << EOF
@@ -96,6 +98,39 @@ The easiest way to deploy the MCP server is using Docker Compose.
 
 The server will be available at `http://localhost:5001` (mapped from internal port 5000).
 
+#### Setup for Multi User Mode:
+To run the server in multi user mode where no `config.json` is present or mounted on the container.
+
+1. **Clone the repository and navigate to the directory:**
+   ```bash
+   git clone https://github.com/IBM/qradar-mcp.git
+   cd qradar-mcp
+   ```
+
+2. **Set environment variables and disable the volume mount:**
+   Create a `.env` file:
+   ```bash
+   cat > .env << EOF
+   QRADAR_HOST=your-qradar-host.com
+   LOG_LEVEL=info
+   EOF
+   ```
+   Modify `docker-compose.yml` to remove or comment out the `config.json` volume mount block under `volumes`:
+   ```yaml
+   # - ./config.json:/opt/app-root/qradar-mcp/config.json:ro
+   ```
+
+3. **Configure SSL Verification via `REQUESTS_CA_BUNDLE`:**
+   In multi-user production deployments, secure SSL/TLS communication with QRadar is highly recommended. To enable SSL certificate verification, set the `REQUESTS_CA_BUNDLE` environment variable in your `.env` file to point to the path of your trusted CA certificate file/bundle inside the container, or pass it via the system environment.
+   ```bash
+   echo "REQUESTS_CA_BUNDLE=/path/to/your/ca-bundle.crt" >> .env
+   ```
+
+4. **Start the server:**
+   ```bash
+   docker-compose up -d
+   ```
+
 ### Option 2: Manual Docker Build
 
 For more control over the Docker deployment:
@@ -105,7 +140,7 @@ For more control over the Docker deployment:
    docker build -t qradar-mcp:latest .
    ```
 
-2. **Run the container:**
+2. **Run the container in Local Single User Mode:**
    ```bash
    docker run -d \
      --name qradar-mcp-server \
@@ -115,12 +150,20 @@ For more control over the Docker deployment:
      -v $(pwd)/logs:/opt/app-root/logs \
      qradar-mcp:latest
    ```
+   *Note: In this mode, the container mounts `config.json` to authenticate all requests using those credentials.*
 
-   **Important**: The config.json file must be mounted at `/opt/app-root/config.json` for authentication. Make sure you've created and configured `config.json` from `config.example.json` before running.
+3. **Run the container in Multi User Mode:**
+   ```bash
+   docker run -d \
+     --name qradar-mcp-server \
+     -p 5001:5000 \
+     --env-file .env \
+     -v $(pwd)/logs:/opt/app-root/logs \
+     qradar-mcp:latest
+   ```
+   *Note: In App Mode, every client request must supply its own user session or service credentials in the HTTP request headers (`SEC` and/or `QRadarCSRF`). Environment variables (including `QRADAR_CONSOLE_FQDN` and `REQUESTS_CA_BUNDLE`) are loaded from the `.env` file created in the setup steps above.*
 
-   The server will be available at `http://localhost:5001` (mapped from internal port 5000).
-
-3. **Check status:**
+4. **Check status:**
    ```bash
    docker ps
    docker logs qradar-mcp-server
@@ -141,7 +184,7 @@ For local development with Python without Docker:
    pip install -e .
    ```
 
-3. **Configure authentication:**
+3. **Configure authentication for local single user mode:**
    ```bash
    cp config.example.json config.json
    # Edit config.json with your QRadar credentials
@@ -149,6 +192,8 @@ For local development with Python without Docker:
    # Copy config to parent directory (required for local mode)
    cp config.json ../config.json
    ```
+   
+   **Note**: Moving or copying `config.json` to the parent directory (`../config.json`) tells the application to run in **Local Mode**. In Local Mode, the client falls back to the credentials configured in `config.json` for requests that do not supply their own credentials. **Should not be done in production or shared multi user environments.**
 
 4. **Run the server:**
    ```bash
@@ -156,8 +201,6 @@ For local development with Python without Docker:
    ```
 
 The server will start at `http://localhost:5000`. The port can be modified in server.py if port conflicts occur.
-
-**Note**: The config loader looks for `config.json` in the parent directory of the qradar-mcp folder when running locally. This is by design to support both Docker (where config is at `/opt/app-root/config.json`) and local Python modes.
 
 ### Verify Deployment
 
@@ -206,11 +249,12 @@ Auth: Using authorized service token from config.json
 
 ## Security
 
-- **Never commit `config.json` or `mcp_settings.json`** - They contain sensitive tokens
-- Tokens are session-based and expire - refresh as needed
-- Use `verify_ssl: true` in production
-- All endpoints require authentication
-- Supports both user sessions and authorized service tokens
+- **Never commit `config.json` or `mcp_settings.json`** - They contain sensitive tokens.
+- **Deployment modes**: Only use the `config.json` files for local single user development. In multi user or production deployments, do not place or mount `config.json` in the expected lookup paths. This ensures the server runs in secure multi user mode, where all API requests are verified using the user's/service's own request context headers.
+- **SSL Certificate Verification**: In production, always configure SSL validation by pointing the `REQUESTS_CA_BUNDLE` environment variable to the path of your trusted CA certificates bundle file (e.g., `/etc/ssl/certs/ca-certificates.crt`). Disabling SSL verification is insecure and should only be done for experimentation or local development.
+- Tokens are session-based and expire - refresh as needed.
+- All endpoints require authentication.
+- Supports both user sessions and authorized service tokens.
 
 ## Troubleshooting
 
