@@ -88,6 +88,7 @@ class TestAuthTokenMiddleware:
         # Mock request with SEC header
         request = Mock()
         request.headers = {'SEC': 'test_sec_token_123'}
+        request.cookies = {}
         request.state = Mock()
         
         # Mock call_next
@@ -111,6 +112,7 @@ class TestAuthTokenMiddleware:
         
         request = Mock()
         request.headers = {'QRadarCSRF': 'test_csrf_token_456'}
+        request.cookies = {}
         request.state = Mock()
         
         async def mock_call_next(req):
@@ -133,6 +135,7 @@ class TestAuthTokenMiddleware:
             'SEC': 'sec_123',
             'QRadarCSRF': 'csrf_456',
         }
+        request.cookies = {}
         request.state = Mock()
         
         async def mock_call_next(req):
@@ -152,6 +155,7 @@ class TestAuthTokenMiddleware:
         
         request = Mock()
         request.headers = {}
+        request.cookies = {}
         request.state = Mock()
         
         async def mock_call_next(req):
@@ -170,6 +174,7 @@ class TestAuthTokenMiddleware:
         
         request = Mock()
         request.headers = {'SEC': 'test_token'}
+        request.cookies = {}
         request.state = Mock()
         
         async def mock_call_next(req):
@@ -189,6 +194,7 @@ class TestAuthTokenMiddleware:
         
         request = Mock()
         request.headers = {'SEC': 'test_token'}
+        request.cookies = {}
         request.state = Mock()
         
         async def mock_call_next(req):
@@ -199,6 +205,85 @@ class TestAuthTokenMiddleware:
         
         # Tokens should still be cleaned up
         assert get_request_auth_tokens() is None
+
+    @pytest.mark.asyncio
+    async def test_middleware_extracts_sec_token_from_cookie(self):
+        """Test middleware falls back to SEC cookie when header is absent"""
+        middleware = AuthTokenMiddleware(app=Mock())
+
+        request = Mock()
+        request.headers = {}
+        request.cookies = {'SEC': 'cookie_sec_token'}
+        request.state = Mock()
+
+        async def mock_call_next(req):
+            tokens = get_request_auth_tokens()
+            assert tokens is not None
+            assert tokens['sec_token'] == 'cookie_sec_token'
+            return Mock()
+
+        await middleware.dispatch(request, mock_call_next)
+
+        assert request.state.auth_tokens['sec_token'] == 'cookie_sec_token'
+
+    @pytest.mark.asyncio
+    async def test_middleware_extracts_csrf_token_from_cookie(self):
+        """Test middleware falls back to QRadarCSRF cookie when header is absent"""
+        middleware = AuthTokenMiddleware(app=Mock())
+
+        request = Mock()
+        request.headers = {}
+        request.cookies = {'QRadarCSRF': 'cookie_csrf_token'}
+        request.state = Mock()
+
+        async def mock_call_next(req):
+            tokens = get_request_auth_tokens()
+            assert tokens is not None
+            assert tokens['csrf_token'] == 'cookie_csrf_token'
+            return Mock()
+
+        await middleware.dispatch(request, mock_call_next)
+
+        assert request.state.auth_tokens['csrf_token'] == 'cookie_csrf_token'
+
+    @pytest.mark.asyncio
+    async def test_middleware_extracts_all_tokens_from_cookies(self):
+        """Test middleware extracts both tokens from cookies when headers absent"""
+        middleware = AuthTokenMiddleware(app=Mock())
+
+        request = Mock()
+        request.headers = {}
+        request.cookies = {'SEC': 'cookie_sec', 'QRadarCSRF': 'cookie_csrf'}
+        request.state = Mock()
+
+        async def mock_call_next(req):
+            tokens = get_request_auth_tokens()
+            assert tokens is not None
+            assert tokens['sec_token'] == 'cookie_sec'
+            assert tokens['csrf_token'] == 'cookie_csrf'
+            return Mock()
+
+        await middleware.dispatch(request, mock_call_next)
+
+    @pytest.mark.asyncio
+    async def test_middleware_header_takes_precedence_over_cookie(self):
+        """Test that header value is used when both header and cookie are present"""
+        middleware = AuthTokenMiddleware(app=Mock())
+
+        request = Mock()
+        request.headers = {'SEC': 'header_sec_token'}
+        request.cookies = {'SEC': 'cookie_sec_token'}
+        request.state = Mock()
+
+        async def mock_call_next(req):
+            tokens = get_request_auth_tokens()
+            assert tokens is not None
+            assert tokens['sec_token'] == 'header_sec_token'
+            return Mock()
+
+        await middleware.dispatch(request, mock_call_next)
+
+        assert request.state.auth_tokens['sec_token'] == 'header_sec_token'
 
 
 class TestAuthContextIntegration:

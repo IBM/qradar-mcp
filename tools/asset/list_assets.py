@@ -40,7 +40,7 @@ class ListAssetsTool(MCPTool):
 
     @property
     def description(self) -> str:
-        return """List assets from QRadar asset model with optional filtering, sorting, and pagination.
+        return """List assets from QRadar asset model with optional filtering, sorting, and pagination. Use this tool to fetch asset details from the QRadar asset database.
 
 === FIELDS REFERENCE ===
 
