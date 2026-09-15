@@ -72,10 +72,14 @@ class AuthTokenMiddleware(BaseHTTPMiddleware):
         # Extract SEC token (required for all QRadar API calls)
         if 'SEC' in request.headers:
             auth_tokens['sec_token'] = request.headers['SEC']
+        elif 'SEC' in request.cookies:
+            auth_tokens['sec_token'] = request.cookies['SEC']
 
         # Extract CSRF token (required for user authentication)
         if 'QRadarCSRF' in request.headers:
             auth_tokens['csrf_token'] = request.headers['QRadarCSRF']
+        elif 'QRadarCSRF' in request.cookies:
+            auth_tokens['csrf_token'] = request.cookies['QRadarCSRF']
 
         # Store auth tokens in both request state and context variable
         request.state.auth_tokens = auth_tokens if auth_tokens else None
