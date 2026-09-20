@@ -125,7 +125,7 @@ pathable==0.5.0
     # via jsonschema-path
 platformdirs==4.9.6
     # via fastmcp
-py-key-value-aio[filetree,keyring,memory]==0.4.4
+py-key-value-aio[filetree,keyring,memory]==0.4.6
     # via fastmcp
 pycparser==3.0
     # via cffi

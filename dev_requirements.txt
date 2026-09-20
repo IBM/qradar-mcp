@@ -167,7 +167,7 @@ pluggy==1.6.0
     # via
     #   pytest
     #   pytest-cov
-py-key-value-aio[filetree,keyring,memory]==0.4.4
+py-key-value-aio[filetree,keyring,memory]==0.4.6
     # via fastmcp
 pycparser==3.0
     # via cffi
