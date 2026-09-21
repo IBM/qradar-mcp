@@ -206,7 +206,7 @@ pytest-cov==7.1.0
     # via qradar-mcp (pyproject.toml)
 pytest-xdist==3.8.0
     # via qradar-mcp (pyproject.toml)
-python-dotenv==1.2.2
+python-dotenv==1.2.3
     # via
     #   fastmcp
     #   pydantic-settings
