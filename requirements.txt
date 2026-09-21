@@ -146,7 +146,7 @@ pyjwt[crypto]==2.13.0
     # via mcp
 pyperclip==1.11.0
     # via fastmcp
-python-dotenv==1.2.2
+python-dotenv==1.2.3
     # via
     #   fastmcp
     #   pydantic-settings
