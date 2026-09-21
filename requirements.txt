@@ -8,7 +8,7 @@ aiofile==3.9.0
     # via py-key-value-aio
 annotated-types==0.7.0
     # via pydantic
-anyio==4.13.0
+anyio==4.15.1
     # via
     #   httpx
     #   mcp
@@ -180,7 +180,7 @@ starlette==1.3.1
     # via
     #   mcp
     #   sse-starlette
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via
     #   anyio
     #   exceptiongroup
