@@ -22,7 +22,8 @@ qradar-mcp/
 ├── resources/         # MCP resources
 ├── utils/             # Utilities (auth, logging, validation)
 ├── tests/             # Comprehensive test suite
-├── server.py          # Main server entry point
+├── server.py          # HTTP server entry point (Docker / uvicorn)
+├── stdio_server.py    # stdio transport entry point (WxO local toolkit, Claude Desktop)
 └── Dockerfile         # Container configuration
 ```
 
@@ -274,6 +275,10 @@ Auth: Using authorized service token from config.json
 [IBM QRadar Investigation Assistant](https://www.ibm.com/docs/en/qradar-common?topic=apps-qradar-investigation-assistant-app) uses this QRadar SIEM MCP server to accelerate your SOC operations - out of the box.
 
 Download the IBM QRadar Investigation Assistant application extension from the IBM Application Exchange [here](https://apps.xforce.ibmcloud.com/extension/53ef188132188ec5682759efdcf23e9a)
+
+## Documentation
+
+- [watsonx Orchestrate Integration Guide](docs/QRADAR_MCP_WXO_INTEGRATION_GUIDE.md) - Full reference covering all three integration patterns (QIA embedded MCP, standalone external server, and WxO local MCP toolkit), network diagrams, environment variable reference, and troubleshooting.
 
 ## Community
 
