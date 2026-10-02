@@ -188,7 +188,7 @@ pygments==2.20.0
     # via
     #   pytest
     #   rich
-pyjwt[crypto]==2.13.0
+pyjwt[crypto]==2.15.0
     # via mcp
 pylint==4.0.5
     # via qradar-mcp (pyproject.toml)
