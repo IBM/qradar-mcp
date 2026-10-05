@@ -23,6 +23,7 @@ from typing import Dict, Any
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.tools import endpoints
+from qradar_mcp.utils.validators import escape_filter_value
 
 
 class GeolocateIpTool(MCPTool):
@@ -92,8 +93,9 @@ Note: Data sourced from MaxMind GeoIP2 database maintained by QRadar."""
             return self.create_error_response("Error: ip_address is required")
 
 
-        # Build filter parameter
-        filter_expr = f'ip_address = "{ip_address}"'
+        # Build filter parameter. Escape the value so double quotes cannot inject filter logic.
+        safe_ip = escape_filter_value(ip_address, delimiter='"')
+        filter_expr = f'ip_address = "{safe_ip}"'
         params = {"filter": filter_expr}
 
         # Add fields if provided

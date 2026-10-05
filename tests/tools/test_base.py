@@ -20,6 +20,7 @@ Unit tests for the base MCPTool class.
 import pytest
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.utils.feature_toggle_manager import set_feature_toggle_manager
+from qradar_mcp.utils.validators import validate_path_segment
 
 
 @pytest.fixture(autouse=True)
@@ -219,3 +220,131 @@ class TestMCPToolEdgeCases:
         response = tool.create_success_response(special_text)
 
         assert response["content"][0]["text"] == special_text
+
+
+class PathParamTool(MCPTool):
+    """Tool with a path parameter for testing path traversal validation."""
+
+    @property
+    def name(self) -> str:
+        return "path_param_tool"
+
+    @property
+    def description(self) -> str:
+        return "Tool with a path parameter"
+
+    @property
+    def input_schema(self):
+        return {"type": "object", "properties": {"name": {"type": "string"}}, "required": ["name"]}
+
+    @property
+    def http_verb(self) -> str:
+        return "GET"
+
+    @property
+    def endpoint(self) -> str:
+        return "reference_data/maps/{name}"
+
+    async def _execute_impl(self, arguments):
+        return self.create_success_response("ok")
+
+
+class MultiPathParamTool(MCPTool):
+    """Tool with multiple path parameters for testing."""
+
+    @property
+    def name(self) -> str:
+        return "multi_path_param_tool"
+
+    @property
+    def description(self) -> str:
+        return "Tool with multiple path parameters"
+
+    @property
+    def input_schema(self):
+        return {"type": "object", "properties": {}}
+
+    @property
+    def http_verb(self) -> str:
+        return "DELETE"
+
+    @property
+    def endpoint(self) -> str:
+        return "reference_data/tables/{name}/{outer_key}/{inner_key}"
+
+    async def _execute_impl(self, arguments):
+        return self.create_success_response("ok")
+
+
+class TestValidatePathSegment:
+    """Tests for validate_path_segment."""
+
+    def test_clean_name_passes(self):
+        assert validate_path_segment("my_reference_map", "name") == "my_reference_map"
+
+    def test_clean_name_with_hyphens_passes(self):
+        assert validate_path_segment("my-map-01", "name") == "my-map-01"
+
+    def test_forward_slash_rejected(self):
+        with pytest.raises(ValueError, match="name"):
+            validate_path_segment("../../config/access/users", "name")
+
+    def test_double_dot_rejected(self):
+        with pytest.raises(ValueError, match="name"):
+            validate_path_segment("..maps", "name")
+
+    def test_backslash_rejected(self):
+        with pytest.raises(ValueError, match="key"):
+            validate_path_segment("foo\\bar", "key")
+
+    def test_embedded_slash_rejected(self):
+        with pytest.raises(ValueError, match="outer_key"):
+            validate_path_segment("valid/but/not", "outer_key")
+
+
+class TestSanitizeArguments:
+    """Tests for MCPTool._sanitize_arguments path-traversal checks."""
+
+    def test_clean_name_passes_through(self):
+        tool = PathParamTool()
+        args = {"name": "my_map"}
+        assert tool._sanitize_arguments(args) == args
+
+    def test_traversal_in_name_raises(self):
+        tool = PathParamTool()
+        with pytest.raises(ValueError, match="name"):
+            tool._sanitize_arguments({"name": "../../config/access/users"})
+
+    def test_traversal_in_name_via_execute_returns_error_response(self):
+        """ValueError from _sanitize_arguments is caught by execute_with_enhancements."""
+        import asyncio
+        tool = PathParamTool()
+        result = asyncio.run(
+            tool.execute({"name": "../../config/access/users"})
+        )
+        assert result["isError"] is True
+        assert "path traversal" in result["content"][0]["text"]
+
+    def test_non_path_param_not_validated(self):
+        """Arguments that are not endpoint placeholders are not checked."""
+        tool = PathParamTool()
+        # 'filter' is not a placeholder in the endpoint, so slashes are fine
+        args = {"name": "good_name", "filter": "field=value/something"}
+        assert tool._sanitize_arguments(args) == args
+
+    def test_multiple_path_params_all_checked(self):
+        tool = MultiPathParamTool()
+        with pytest.raises(ValueError, match="outer_key"):
+            tool._sanitize_arguments({"name": "valid", "outer_key": "../escape", "inner_key": "fine"})
+
+    def test_integer_path_param_not_checked(self):
+        """Integer values for path params are skipped (only str is validated)."""
+        tool = PathParamTool()
+        # If a tool passes an int (e.g. after int() coercion), it must not raise
+        args = {"name": 42}
+        assert tool._sanitize_arguments(args) == args
+
+    def test_endpoint_without_placeholders_unaffected(self):
+        tool = MinimalTool()  # endpoint = "test/endpoint"
+        args = {"some_field": "../../anything"}
+        assert tool._sanitize_arguments(args) == args

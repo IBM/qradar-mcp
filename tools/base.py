@@ -20,6 +20,7 @@ Provides the abstract base class that all MCP tools must inherit from.
 Includes production-ready features: structured logging, input sanitization, and audit logging.
 """
 
+import string
 import time
 from typing import Dict, Any, Optional
 from abc import ABC, abstractmethod
@@ -29,6 +30,7 @@ import httpx
 from qradar_mcp.utils.structured_logger import log_structured
 from qradar_mcp.utils.audit_logger import AuditLogger
 from qradar_mcp.utils.error_handler import extract_qradar_error
+from qradar_mcp.utils.validators import validate_path_segment
 from qradar_mcp.client.qradar_rest_client import QRadarRestClient
 
 
@@ -320,16 +322,35 @@ class MCPTool(ABC):
     def _sanitize_arguments(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Sanitize input arguments based on the tool's input schema.
-        Override this method in subclasses for custom sanitization logic.
+
+        Validates any argument whose name appears as a placeholder in the
+        tool's endpoint template against path-traversal characters. This
+        ensures that string parameters interpolated into URL paths cannot
+        contain `/`, `\\`, or `..` sequences regardless of which tool is
+        called.
+
+        Override this method in subclasses for additional sanitization logic,
+        calling `super()._sanitize_arguments(arguments)` to retain the base
+        validation.
 
         Args:
             arguments: Raw input arguments
 
         Returns:
             Sanitized arguments dictionary
+
+        Raises:
+            ValueError: If any path-segment argument contains traversal characters.
         """
-        # Default implementation: pass through arguments unchanged
-        # Tools can override this method for custom sanitization
+        path_params = {
+            field_name
+            for _, field_name, _, _ in string.Formatter().parse(self.endpoint)
+            if field_name is not None
+        }
+        for param in path_params:
+            value = arguments.get(param)
+            if isinstance(value, str):
+                validate_path_segment(value, param)
         return arguments
 
     def _sanitize_log_arguments(self, arguments: Dict[str, Any]) -> Dict[str, Any]:

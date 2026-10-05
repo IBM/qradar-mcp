@@ -89,7 +89,7 @@ class GetArielSearchStatusTool(MCPTool):
         # Build headers with optional Prefer header for wait
         headers = {}
         if wait_seconds is not None:
-            headers["Prefer"] = f"wait={wait_seconds}"
+            headers["Prefer"] = f"wait={int(wait_seconds)}"
 
         # Make API request
         api_path = self.endpoint.format(search_id=search_id)

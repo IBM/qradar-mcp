@@ -27,6 +27,7 @@ This adapter preserves all existing tool logic including:
 from typing import Any, Dict, Optional
 from inspect import Parameter, Signature
 from fastmcp import FastMCP
+from fastmcp.exceptions import ToolError
 from pydantic import Field
 from .base import MCPTool
 
@@ -118,7 +119,13 @@ def register_mcp_tool_with_fastmcp(mcp: FastMCP, tool: MCPTool) -> None:
         # Extract text from MCP response format (covers both success and error)
         if isinstance(result, dict) and "content" in result:
             if len(result["content"]) > 0:
-                return result["content"][0].get("text", "")
+                text = result["content"][0].get("text", "")
+                # Per MCP spec, tool execution errors MUST be surfaced with
+                # isError: true so that the MCP client can set status="error"
+                # on the resulting ToolMessage and the UI can display them.
+                if result.get("isError"):
+                    raise ToolError(text)
+                return text
 
         return str(result)
 
