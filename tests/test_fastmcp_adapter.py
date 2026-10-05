@@ -22,6 +22,7 @@ Tests the adapter pattern that bridges MCPTool implementations with FastMCP.
 import pytest
 from unittest.mock import Mock, patch, AsyncMock
 import httpx
+from fastmcp.exceptions import ToolError
 from qradar_mcp.tools.fastmcp_adapter import (
     _json_schema_type_to_python,
     _create_pydantic_fields,
@@ -338,8 +339,14 @@ class TestToolExecution:
         assert "offense_id" in result["content"][0]["text"].lower()
 
     @pytest.mark.asyncio
-    async def test_adapter_returns_error_text_not_raises(self):
-        """Adapter must return error text as string, not raise, when tool returns isError."""
+    async def test_adapter_raises_tool_error_when_is_error(self):
+        """Adapter must raise ToolError (not return a string) when tool returns isError: True.
+
+        Per MCP spec, tool execution errors must be signalled via isError: true on the
+        wire so the MCP client (langchain-mcp-adapters) can set status="error" on the
+        ToolMessage.  FastMCP converts a ToolError exception into isError: true — it does
+        NOT crash the server.
+        """
         mock_client = AsyncMock()
         mock_response = httpx.Response(
             500,
@@ -358,15 +365,12 @@ class TestToolExecution:
         tool = GetOffenseTool()
         tool.client = mock_client
 
-        # Tool.execute() returns isError response — adapter must NOT raise
+        # Verify the tool itself still returns isError in its result dict
         result = await tool.execute({"offense_id": 1})
         assert result.get("isError") is True
         error_text = result["content"][0]["text"]
 
-        # Now verify the adapter's _execute_tool closure returns it as a string
-        from qradar_mcp.tools.fastmcp_adapter import register_mcp_tool_with_fastmcp
-        from unittest.mock import patch as _patch
-
+        # Now verify the adapter raises ToolError so FastMCP sets isError: true on the wire
         mcp = Mock()
         captured = {}
 
@@ -379,10 +383,9 @@ class TestToolExecution:
         mcp.tool = capture_tool
         register_mcp_tool_with_fastmcp(mcp, tool)
 
-        # Call the registered wrapper — should return the error string, not raise
-        returned = await captured["fn"](offense_id=1)
-        assert isinstance(returned, str)
-        assert returned == error_text
+        with pytest.raises(ToolError) as exc_info:
+            await captured["fn"](offense_id=1)
+        assert error_text in str(exc_info.value)
 
 
 class TestSchemaValidation:

@@ -77,7 +77,7 @@ from list_reference_sets (with entry details) or when adding entries to a set.""
         if entry_id is None:
             return self.create_error_response("Error: entry_id is required")
 
-        response = await self.client.delete(self.endpoint.format(entry_id=entry_id))
+        response = await self.client.delete(self.endpoint.format(entry_id=int(entry_id)))
 
         response.raise_for_status()
         message = f"Entry {entry_id} removed successfully from reference set"

@@ -18,6 +18,7 @@ Pytest configuration and fixtures for the test suite.
 Provides fixtures for FastMCP-based tests.
 """
 
+import atexit
 import os
 import pytest
 from unittest.mock import Mock
@@ -52,6 +53,26 @@ def mock_qpylib(monkeypatch):
     monkeypatch.setattr('qpylib.qpylib.get_console_address', mock.get_console_address)
 
     return mock
+
+
+@pytest.fixture(autouse=True, scope="session")
+def suppress_atexit_logging():
+    """
+    Unregister the httpx client atexit handler before pytest teardown.
+
+    The handler calls log_structured after the client closes. When pytest
+    shuts down its worker processes sys.stderr is already closed, so the
+    logging framework raises 'I/O operation on closed file' and prints
+    '--- Logging error ---' noise to the terminal. Removing the handler
+    here means the httpx client is simply not closed during test teardown
+    (it has no real connection to close in tests anyway).
+    """
+    yield
+    try:
+        from qradar_mcp.server import cleanup_httpx_client
+        atexit.unregister(cleanup_httpx_client)
+    except Exception:  # pylint: disable=broad-exception-caught
+        pass
 
 @pytest.fixture
 def mock_requests():

@@ -103,7 +103,7 @@ Returns detailed information including:
             params['fields'] = fields_str
 
         # Make API request
-        response = await self.client.get(self.endpoint.format(building_block_id=building_block_id),
+        response = await self.client.get(self.endpoint.format(building_block_id=int(building_block_id)),
                             params=params)
         response.raise_for_status()
 

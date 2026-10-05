@@ -87,7 +87,7 @@ capacity metrics, identifiers, and timestamps."""
             params['fields'] = fields_str
 
         # Make API request
-        response = await self.client.get(self.endpoint.format(rule_id=rule_id), params=params)
+        response = await self.client.get(self.endpoint.format(rule_id=int(rule_id)), params=params)
         response.raise_for_status()
 
         rule_data = response.json()

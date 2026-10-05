@@ -24,6 +24,7 @@ import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.tools import endpoints
+from qradar_mcp.utils.validators import validate_cidr
 
 
 class AddStagedNetworkTool(MCPTool):
@@ -95,6 +96,10 @@ apply them."""
             return self.create_error_response("Error: name is required")
         if not cidr:
             return self.create_error_response("Error: cidr is required")
+
+        is_valid, cidr_error = validate_cidr(cidr)
+        if not is_valid:
+            return self.create_error_response(f"Error: {cidr_error}")
 
         get_response = await self.client.get(
             self.endpoint, params={})

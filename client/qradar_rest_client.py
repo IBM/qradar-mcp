@@ -209,6 +209,49 @@ class QRadarRestClient():  # pylint: disable=too-many-instance-attributes
         )
 
     @retry_on_failure_async(max_attempts=3, backoff_factor=2.0)
+    async def put(self, api_path, headers=None, params=None, data=None, version=None, timeout=None):  # pylint: disable=too-many-positional-arguments,too-many-arguments
+        """
+        Perform a PUT request to the QRadar API with automatic retry on transient failures.
+
+        Args:
+            api_path: The API path
+            headers: Optional headers dictionary
+            params: Optional query parameters
+            data: Optional request body data (will be JSON encoded if dict or list)
+            version: Optional API version
+            timeout: Optional request timeout
+
+        Returns:
+            httpx.Response object
+        """
+        full_url = self._generate_full_url(api_path)
+        headers = self._add_headers(headers, version)
+
+        log_structured(
+            f"QRadar API PUT request: {api_path}",
+            level='DEBUG',
+            api_path=api_path,
+            method='PUT'
+        )
+
+        client = self._get_client()
+        if isinstance(data, (dict, list)):
+            return await client.put(
+                url=full_url,
+                headers=headers,
+                timeout=timeout,
+                params=params,
+                json=data
+            )
+        return await client.put(
+            url=full_url,
+            headers=headers,
+            timeout=timeout,
+            params=params,
+            content=data
+        )
+
+    @retry_on_failure_async(max_attempts=3, backoff_factor=2.0)
     async def delete(self, api_path, headers=None, params=None, version=None, timeout=None):  # pylint: disable=too-many-positional-arguments
         """
         Perform a DELETE request to the QRadar API with automatic retry on transient failures.

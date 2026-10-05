@@ -107,9 +107,9 @@ class GetArielSearchResultsTool(MCPTool):
         """Build Range header for pagination."""
         headers = {}
         if start is not None or limit is not None:
-            start_idx = start if start is not None else 0
+            start_idx = int(start) if start is not None else 0
             if limit is not None:
-                end_idx = start_idx + limit - 1
+                end_idx = start_idx + int(limit) - 1
                 range_header = f"items={start_idx}-{end_idx}"
             else:
                 range_header = f"items={start_idx}-"

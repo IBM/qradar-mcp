@@ -24,6 +24,7 @@ import json
 from qradar_mcp.tools.base import MCPTool
 from qradar_mcp.tools.schema import schema
 from qradar_mcp.tools import endpoints
+from qradar_mcp.utils.validators import escape_filter_value
 
 
 class AddToReferenceSetTool(MCPTool):
@@ -113,10 +114,11 @@ it will be updated with the new timestamp and optional notes/source."""
         if not value:
             return self.create_error_response("Error: value is required")
 
-        # First, look up the reference set by name to get its ID
+        # First, look up the reference set by name to get its ID.
+        # Escape the name so single quotes cannot inject filter logic.
         list_response = await self.client.get(
             self._SETS_ENDPOINT,
-            params={"filter": f"name='{set_name}'"}
+            params={"filter": f"name='{escape_filter_value(set_name)}'"}
         )
         sets = list_response.json()
 

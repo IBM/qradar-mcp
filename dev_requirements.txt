@@ -92,7 +92,7 @@ httpx==0.28.1
     #   qradar-mcp (pyproject.toml)
 httpx-sse==0.4.3
     # via mcp
-idna==3.17
+idna==3.18
     # via
     #   anyio
     #   email-validator
@@ -188,7 +188,7 @@ pygments==2.20.0
     # via
     #   pytest
     #   rich
-pyjwt[crypto]==2.13.0
+pyjwt[crypto]==2.15.0
     # via mcp
 pylint==4.0.5
     # via qradar-mcp (pyproject.toml)
@@ -266,7 +266,7 @@ typing-inspection==0.4.2
     #   pydantic-settings
 uncalled-for==0.3.1
     # via fastmcp
-urllib3==2.7.0
+urllib3==2.8.0
     # via requests
 uvicorn==0.46.0
     # via

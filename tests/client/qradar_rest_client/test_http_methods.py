@@ -1,5 +1,5 @@
 """
-Tests for QRadarRestClient HTTP methods (POST, DELETE)
+Tests for QRadarRestClient HTTP methods (POST, PUT, DELETE)
 """
 
 import pytest
@@ -149,6 +149,141 @@ class TestQRadarRestClientPOST:
         assert response.status_code == 200
         # httpx handles proxies differently, just verify call was made
         assert mock_client.post.called
+
+
+class TestQRadarRestClientPUT:
+    """Tests for PUT method."""
+
+    @pytest.mark.asyncio
+    @patch('qradar_mcp.client.qradar_rest_client.log_structured')
+    @patch('qradar_mcp.client.qradar_rest_client.load_config')
+    async def test_put_with_dict_data(self, mock_load_config, mock_log):
+        """Test PUT request with dictionary data uses json= parameter."""
+        mock_config = {
+            "qradar": {
+                "host": "https://qradar.local",
+                "sec_token": "test_token",
+                "verify_ssl": False
+            }
+        }
+        mock_load_config.return_value = mock_config
+
+        mock_client = AsyncMock(spec=httpx.AsyncClient)
+        mock_response = httpx.Response(200, request=httpx.Request("PUT", "http://test"))
+        mock_client.put = AsyncMock(return_value=mock_response)
+
+        client = QRadarRestClient(client=mock_client)
+        data = {"id": 1, "name": "updated"}
+
+        response = await client.put('test/endpoint', data=data)
+
+        assert response.status_code == 200
+        mock_client.put.assert_called_once()
+        call_kwargs = mock_client.put.call_args[1]
+        assert call_kwargs.get('json') == data
+
+    @pytest.mark.asyncio
+    @patch('qradar_mcp.client.qradar_rest_client.log_structured')
+    @patch('qradar_mcp.client.qradar_rest_client.load_config')
+    async def test_put_with_list_data(self, mock_load_config, mock_log):
+        """Test PUT request with list data uses json= parameter."""
+        mock_config = {
+            "qradar": {
+                "host": "https://qradar.local",
+                "sec_token": "test_token",
+                "verify_ssl": False
+            }
+        }
+        mock_load_config.return_value = mock_config
+
+        mock_client = AsyncMock(spec=httpx.AsyncClient)
+        mock_response = httpx.Response(200, request=httpx.Request("PUT", "http://test"))
+        mock_client.put = AsyncMock(return_value=mock_response)
+
+        client = QRadarRestClient(client=mock_client)
+        data = [{"id": 1, "name": "net-a"}, {"id": 2, "name": "net-b"}]
+
+        response = await client.put('test/endpoint', data=data)
+
+        assert response.status_code == 200
+        call_kwargs = mock_client.put.call_args[1]
+        assert call_kwargs.get('json') == data
+
+    @pytest.mark.asyncio
+    @patch('qradar_mcp.client.qradar_rest_client.log_structured')
+    @patch('qradar_mcp.client.qradar_rest_client.load_config')
+    async def test_put_with_string_data(self, mock_load_config, mock_log):
+        """Test PUT request with string data uses content= parameter."""
+        mock_config = {
+            "qradar": {
+                "host": "https://qradar.local",
+                "sec_token": "test_token",
+                "verify_ssl": False
+            }
+        }
+        mock_load_config.return_value = mock_config
+
+        mock_client = AsyncMock(spec=httpx.AsyncClient)
+        mock_response = httpx.Response(200, request=httpx.Request("PUT", "http://test"))
+        mock_client.put = AsyncMock(return_value=mock_response)
+
+        client = QRadarRestClient(client=mock_client)
+        data = "raw string data"
+
+        response = await client.put('test/endpoint', data=data)
+
+        assert response.status_code == 200
+        call_kwargs = mock_client.put.call_args[1]
+        assert call_kwargs.get('content') == data
+
+    @pytest.mark.asyncio
+    @patch('qradar_mcp.client.qradar_rest_client.log_structured')
+    @patch('qradar_mcp.client.qradar_rest_client.load_config')
+    async def test_put_with_version(self, mock_load_config, mock_log):
+        """Test PUT request sets Version header."""
+        mock_config = {
+            "qradar": {
+                "host": "https://qradar.local",
+                "sec_token": "test_token"
+            }
+        }
+        mock_load_config.return_value = mock_config
+
+        mock_client = AsyncMock(spec=httpx.AsyncClient)
+        mock_response = httpx.Response(200, request=httpx.Request("PUT", "http://test"))
+        mock_client.put = AsyncMock(return_value=mock_response)
+
+        client = QRadarRestClient(client=mock_client)
+
+        response = await client.put('test/endpoint', data={}, version="15.0")
+
+        assert response.status_code == 200
+        call_kwargs = mock_client.put.call_args[1]
+        assert call_kwargs['headers']['Version'] == "15.0"
+
+    @pytest.mark.asyncio
+    @patch('qradar_mcp.client.qradar_rest_client.log_structured')
+    @patch('qradar_mcp.client.qradar_rest_client.load_config')
+    async def test_put_logs_request(self, mock_load_config, mock_log):
+        """Test PUT request logs a structured entry."""
+        mock_config = {
+            "qradar": {
+                "host": "https://qradar.local",
+                "sec_token": "test_token"
+            }
+        }
+        mock_load_config.return_value = mock_config
+
+        mock_client = AsyncMock(spec=httpx.AsyncClient)
+        mock_response = httpx.Response(200, request=httpx.Request("PUT", "http://test"))
+        mock_client.put = AsyncMock(return_value=mock_response)
+
+        client = QRadarRestClient(client=mock_client)
+        await client.put('config/network_hierarchy/staged_networks', data=[])
+
+        mock_log.assert_called()
+        log_args = mock_log.call_args
+        assert log_args[1].get('method') == 'PUT'
 
 
 class TestQRadarRestClientDELETE:

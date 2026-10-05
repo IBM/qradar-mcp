@@ -19,6 +19,7 @@ Input Validators
 Utilities for validating input parameters before making API calls.
 """
 
+import ipaddress
 import re
 from typing import Optional, List, Any
 
@@ -69,6 +70,52 @@ def validate_ip_address(ip: str) -> bool:
             return True
 
     return False
+
+
+def validate_path_segment(value: str, param_name: str) -> str:
+    """
+    Validate that a string value is safe to interpolate into a URL path segment.
+
+    Rejects values containing path traversal sequences (`..`), forward slashes
+    (`/`), or backslashes (`\\`) so that user-supplied parameters cannot escape
+    their intended API path prefix.
+
+    Args:
+        value: The string to validate.
+        param_name: Name of the parameter (used in the error message).
+
+    Returns:
+        The original `value` unchanged if it is safe.
+
+    Raises:
+        ValueError: If `value` contains a disallowed character or sequence.
+    """
+    if ".." in value or "/" in value or "\\" in value:
+        raise ValueError(
+            f"Invalid value for '{param_name}': path traversal characters are not allowed"
+        )
+    return value
+
+
+def validate_cidr(cidr: str) -> tuple[bool, Optional[str]]:
+    """
+    Validate that a string is a well-formed CIDR network notation.
+
+    Accepts both IPv4 (e.g. 192.168.1.0/24) and IPv6 (e.g. 2001:db8::/32)
+    notation. Uses `strict=False` so host bits being set (e.g. 192.168.1.5/24)
+    is accepted rather than rejected — QRadar normalises these on import.
+
+    Args:
+        cidr: The CIDR string to validate.
+
+    Returns:
+        Tuple of (is_valid, error_message). error_message is None when valid.
+    """
+    try:
+        ipaddress.ip_network(cidr, strict=False)
+        return True, None
+    except ValueError:
+        return False, f"Invalid CIDR notation: '{cidr}'"
 
 
 def validate_aql_query(query: str) -> tuple[bool, Optional[str]]:
@@ -320,3 +367,25 @@ def validate_search_id(search_id: str) -> bool:
         return True
 
     return False
+
+
+def escape_filter_value(value: str, delimiter: str = "'") -> str:
+    """
+    Escape a user-supplied string for safe interpolation into a QRadar API
+    filter expression.
+
+    QRadar filter expressions delimit string literals with single quotes (default)
+    or double quotes. An unescaped quote matching the delimiter terminates the
+    literal early, allowing arbitrary filter logic to be injected. This function
+    escapes every occurrence of the delimiter with a backslash so the value is
+    treated as a literal string by the API.
+
+    Args:
+        value: The raw user-supplied string to embed in the filter.
+        delimiter: The quote character used to delimit the filter value
+            (`'` or `"`). Defaults to `'`.
+
+    Returns:
+        The value with all occurrences of `delimiter` backslash-escaped.
+    """
+    return value.replace(delimiter, f"\\{delimiter}")
