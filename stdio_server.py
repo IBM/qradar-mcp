@@ -25,6 +25,8 @@ Credentials and connection settings are read from environment variables:
     QRADAR_AUTH_TOKEN     Authorized service token (recommended)
     QRADAR_SEC_TOKEN      SEC token - alternative to QRADAR_AUTH_TOKEN
     QRADAR_CSRF_TOKEN     CSRF token - only needed alongside QRADAR_SEC_TOKEN
+    QRADAR_USERNAME       Username for HTTP Basic auth - used only when no token is set
+    QRADAR_PASSWORD       Password for HTTP Basic auth - required with QRADAR_USERNAME
     REQUESTS_CA_BUNDLE    Path to CA bundle for SSL verification (optional)
 
 Proxy configuration (standard env vars respected by httpx automatically):
@@ -69,12 +71,18 @@ _console_fqdn = os.getenv('QRADAR_CONSOLE_FQDN')
 _auth_token = os.getenv('QRADAR_AUTH_TOKEN')
 _sec_token = os.getenv('QRADAR_SEC_TOKEN')
 _csrf_token = os.getenv('QRADAR_CSRF_TOKEN')
+_username = os.getenv('QRADAR_USERNAME')
+_password = os.getenv('QRADAR_PASSWORD')
 
 if not _console_fqdn:
     log_structured("FATAL: QRADAR_CONSOLE_FQDN environment variable is not set", level='ERROR')
     sys.exit(1)
-if not (_auth_token or _sec_token):
-    log_structured("FATAL: No QRadar credentials configured. Set QRADAR_AUTH_TOKEN or QRADAR_SEC_TOKEN", level='ERROR')
+if not (_auth_token or _sec_token or (_username and _password)):
+    log_structured(
+        "FATAL: No QRadar credentials configured. Set QRADAR_AUTH_TOKEN, "
+        "QRADAR_SEC_TOKEN, or QRADAR_USERNAME with QRADAR_PASSWORD",
+        level='ERROR'
+    )
     sys.exit(1)
 
 qradar_client = QRadarRestClient()
@@ -82,6 +90,8 @@ qradar_client._url = _console_fqdn
 qradar_client._authorized_service_token = _auth_token
 qradar_client._sec_token = _sec_token
 qradar_client._csrf_token = _csrf_token
+qradar_client._username = _username
+qradar_client._password = _password
 qradar_client._local_mode = True
 
 # Proxy resolution: QRADAR_REST_PROXY takes precedence; fall back to the

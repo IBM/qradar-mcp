@@ -4,6 +4,8 @@
     "sec_token": "",
     "csrf_token": "",
     "authorized_service_token": "",
+    "username": "",
+    "password": "",
     "app_id": "",
     "verify_ssl": false,
     "proxy": null

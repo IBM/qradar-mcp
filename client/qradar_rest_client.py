@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+import base64
 import json
 import os
 from typing import Dict, Optional
@@ -24,6 +25,27 @@ from qradar_mcp.auth_context import get_request_auth_tokens
 
 QRADAR_CSRF = 'QRadarCSRF'
 SEC_HEADER = 'SEC'
+AUTHORIZATION_HEADER = 'Authorization'
+BASIC_SCHEME = 'Basic'
+
+
+def build_basic_auth_header(username: str, password: str) -> str:
+    """
+    Build an HTTP Basic ``Authorization`` header value.
+
+    QRadar accepts HTTP Basic authentication as an alternative to SEC token
+    authentication, which is useful for deployments where an authorized service
+    token cannot be issued.
+
+    Args:
+        username: QRadar username
+        password: QRadar password
+
+    Returns:
+        The header value, e.g. ``Basic dXNlcjpwYXNz``
+    """
+    credentials = f"{username}:{password}".encode('utf-8')
+    return f"{BASIC_SCHEME} {base64.b64encode(credentials).decode('ascii')}"
 
 
 def load_config():
@@ -44,6 +66,9 @@ class QRadarRestClient():  # pylint: disable=too-many-instance-attributes
     1. Auth tokens from request context (set by middleware) - for FastMCP usage
     2. Config file - for local development
     3. QRadar App mode (uses qpylib for console FQDN)
+
+    Supported credential types (both context and config): SEC + QRadarCSRF
+    tokens, an authorized service token, or HTTP Basic username/password.
 
     This client uses a shared httpx.AsyncClient instance for connection pooling.
     """
@@ -71,14 +96,24 @@ class QRadarRestClient():  # pylint: disable=too-many-instance-attributes
             self._sec_token = self.config['qradar'].get('sec_token')
             self._csrf_token = self.config['qradar'].get('csrf_token')
             self._authorized_service_token = self.config['qradar'].get('authorized_service_token')
+            self._username = self.config['qradar'].get('username')
+            self._password = self.config['qradar'].get('password')
             self._verify_ssl = self.config['qradar'].get('verify_ssl', False)
             self._proxy = self.config['qradar'].get('proxy')
             self._local_mode = True
         else:
             # QRadar App mode
             self._url = os.getenv('QRADAR_CONSOLE_FQDN')
-            self._sec_token = None
-            self._csrf_token = None
+            # Credentials normally arrive per request via headers. These env
+            # vars are the documented fallback for deployments that run the
+            # server for a single identity (stdio transport, or a container
+            # with no config.json); requests that carry their own headers
+            # always take precedence over them in _add_headers().
+            self._authorized_service_token = os.getenv('QRADAR_AUTH_TOKEN')
+            self._sec_token = os.getenv('QRADAR_SEC_TOKEN')
+            self._csrf_token = os.getenv('QRADAR_CSRF_TOKEN')
+            self._username = os.getenv('QRADAR_USERNAME')
+            self._password = os.getenv('QRADAR_PASSWORD')
             self._is_fvt_env = os.getenv('FUNCTIONAL_TEST_ENV') is not None
             self._cert_path = os.getenv('REQUESTS_CA_BUNDLE')
             self._proxy = os.getenv('QRADAR_REST_PROXY')
@@ -290,13 +325,16 @@ class QRadarRestClient():  # pylint: disable=too-many-instance-attributes
 
         Priority for authentication (in order):
         1. Auth tokens from request context (set by middleware) - for FastMCP usage
-        2. Config file (for local development)
+        2. The credentials this process was configured with - config.json in
+           local mode, or the QRADAR_* environment variables otherwise
 
         For user authentication, both CSRF and SEC tokens are required.
         For service authentication, only SEC token is required.
+        For basic authentication, a username and password are required.
 
         In local mode, if authorized_service_token is configured, it takes priority
-        over sec_token to simulate service authentication.
+        over sec_token to simulate service authentication. HTTP Basic credentials are
+        used only when no SEC/CSRF token is configured.
         """
         if headers is None:
             headers = {}
@@ -308,11 +346,25 @@ class QRadarRestClient():  # pylint: disable=too-many-instance-attributes
         context_tokens = get_request_auth_tokens()
         if context_tokens:
             headers.update(self._context_auth_mode(context_tokens))
-        # Priority 2: In local mode, use tokens from config
-        elif self._local_mode:
+        # Priority 2: Fall back to the credentials this process was configured
+        # with. A multi user deployment configures none of these, so a request
+        # that supplies no credentials of its own still fails exactly as before.
+        elif self._local_mode or self._has_ambient_credentials():
             headers.update(self._local_mode_auth())
 
         return headers
+
+    def _has_ambient_credentials(self) -> bool:
+        """
+        Whether this process holds credentials of its own, as opposed to
+        relying on each request to supply them.
+        """
+        return bool(
+            self._authorized_service_token
+            or self._sec_token
+            or self._csrf_token
+            or (self._username and self._password)
+        )
 
     def _context_auth_mode(self, context_tokens: Dict[str, str]) -> Dict[str, str]:
         """
@@ -330,11 +382,14 @@ class QRadarRestClient():  # pylint: disable=too-many-instance-attributes
         if 'authorized_service_token' in context_tokens:
             auth_headers[SEC_HEADER] = context_tokens['authorized_service_token']
         # Otherwise use user tokens (user auth)
-        else:
+        elif 'sec_token' in context_tokens or 'csrf_token' in context_tokens:
             if 'sec_token' in context_tokens:
                 auth_headers[SEC_HEADER] = context_tokens['sec_token']
             if 'csrf_token' in context_tokens:
                 auth_headers[QRADAR_CSRF] = context_tokens['csrf_token']
+        # Fall back to a pre-built HTTP Basic header forwarded by the middleware
+        elif 'authorization' in context_tokens:
+            auth_headers[AUTHORIZATION_HEADER] = context_tokens['authorization']
 
         return auth_headers
 
@@ -344,11 +399,16 @@ class QRadarRestClient():  # pylint: disable=too-many-instance-attributes
         if self._authorized_service_token:
             auth_headers[SEC_HEADER] = self._authorized_service_token
         # Otherwise use user tokens (simulates user auth)
-        else:
+        elif self._sec_token or self._csrf_token:
             if self._sec_token:
                 auth_headers[SEC_HEADER] = self._sec_token
             if self._csrf_token:
                 auth_headers[QRADAR_CSRF] = self._csrf_token
+        # Fall back to HTTP Basic credentials (username/password auth)
+        elif self._username and self._password:
+            auth_headers[AUTHORIZATION_HEADER] = build_basic_auth_header(
+                self._username, self._password
+            )
 
         return auth_headers
 

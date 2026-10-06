@@ -45,7 +45,7 @@ qradar-mcp/
   - QVM (2 tools) - Vulnerability and asset data
   - System Administration (2 tools) - System info and server listing
 - **Dynamic Resources**: AQL field definitions, functions, generation guide, and API query syntax reference
-- **Dual Authentication**: Supports both user sessions and authorized service tokens
+- **Flexible Authentication**: Supports user sessions (SEC/CSRF), authorized service tokens, and HTTP Basic username/password
 
 ## Deployment
 
@@ -56,13 +56,13 @@ The QRadar MCP Server can be deployed in multiple ways depending on your needs.
 - Docker 20.10+ and Docker Compose 2.0+ (for containerized deployment)
 - Python 3.11+ (for local development)
 - Access to a QRadar SIEM deployment
-- QRadar SIEM authentication tokens (SEC/CSRF or Authorized Service token)
+- QRadar SIEM credentials (SEC/CSRF tokens, an Authorized Service token, or a username/password for HTTP Basic)
 
 ### Option 1: Docker Compose (Recommended)
 
 The easiest way to deploy the MCP server is using Docker Compose. The server can be run in two modes:
 * **Local Single User Mode**: Utilizes `config.json` on the disk to authenticate all incoming requests (useful for local development).
-* **Multi User Mode (App Mode)**: Does not use or mount `config.json`. Every client request must supply its own QRadar credentials via headers (`SEC` and `QRadarCSRF`, or Authorized service token as `SEC`).
+* **Multi User Mode (App Mode)**: Does not use or mount `config.json`. Every client request must supply its own QRadar credentials via headers (`SEC` and `QRadarCSRF`, Authorized service token as `SEC`, or `Authorization: Basic <base64(user:password)>`).
 
 #### Setup for Local Single User Mode:
 1. **Clone the repository and navigate to the directory:**
@@ -200,6 +200,8 @@ For local development with Python without Docker:
    
    **Note**: Moving or copying `config.json` to the parent directory (`../config.json`) tells the application to run in **Local Mode**. In Local Mode, the client falls back to the credentials configured in `config.json` for requests that do not supply their own credentials. **Should not be done in production or shared multi user environments.**
 
+   Fill in exactly one credential set under `qradar` — see [Authentication](#authentication) for the available options and their precedence.
+
 4. **Run the server:**
    ```bash
    python server.py
@@ -244,6 +246,37 @@ Auth: Using authorized service token from config.json
 - `QRADAR_SEC_TOKEN`: QRadar SEC token (for user sessions)
 - `QRADAR_CSRF_TOKEN`: QRadar CSRF token (for user sessions)
 - `QRADAR_AUTH_TOKEN`: Authorized service token (alternative to SEC/CSRF)
+- `QRADAR_USERNAME`: Username for HTTP Basic authentication (used only when no token is set)
+- `QRADAR_PASSWORD`: Password for HTTP Basic authentication (required with `QRADAR_USERNAME`)
+
+### Authentication
+
+The server supports three credential types. They can be supplied per request via HTTP
+headers (Multi User Mode), from `config.json` (Local Single User Mode), or from the
+`QRADAR_*` environment variables (stdio transport, or a container with no `config.json`):
+
+| Credential type | `config.json` fields | Environment variables | HTTP headers |
+| --- | --- | --- | --- |
+| Authorized service token | `authorized_service_token` | `QRADAR_AUTH_TOKEN` | `SEC: <token>` |
+| User session | `sec_token`, `csrf_token` | `QRADAR_SEC_TOKEN`, `QRADAR_CSRF_TOKEN` | `SEC: <token>`, `QRadarCSRF: <token>` |
+| HTTP Basic | `username`, `password` | `QRADAR_USERNAME`, `QRADAR_PASSWORD` | `Authorization: Basic <base64(username:password)>` |
+
+Precedence, applied identically to every source:
+
+1. Authorized service token
+2. User session tokens (`sec_token` / `csrf_token`)
+3. HTTP Basic credentials
+
+Credentials supplied per request always take precedence over the ones this process was
+started with. Only the `Basic` scheme is read from the `Authorization` header — an
+`Authorization: Bearer ...` header (for example, one used to authenticate to the MCP
+server itself) is never forwarded to QRadar.
+
+A Multi User Mode deployment configures none of the above, so a request that carries no
+credentials of its own is rejected exactly as before.
+
+HTTP Basic sends reusable credentials on every request, so prefer an authorized service
+token where one can be issued, and always enable TLS verification when using it.
 
 ### Configuration Files
 
