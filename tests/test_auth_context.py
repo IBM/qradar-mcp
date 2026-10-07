@@ -326,3 +326,83 @@ class TestAuthContextIntegration:
         # Third request with no tokens
         set_request_auth_tokens(None)
         assert get_request_auth_tokens() is None
+
+
+class TestAuthTokenMiddlewareBasicAuth:
+    """Test Authorization header extraction for HTTP Basic authentication"""
+
+    @pytest.mark.asyncio
+    async def test_middleware_extracts_basic_authorization_header(self):
+        """Test middleware forwards a Basic Authorization header"""
+        middleware = AuthTokenMiddleware(app=Mock())
+
+        request = Mock()
+        request.headers = {'Authorization': 'Basic YWRtaW46czNjcmV0'}
+        request.cookies = {}
+        request.state = Mock()
+
+        async def mock_call_next(req):
+            tokens = get_request_auth_tokens()
+            assert tokens is not None
+            assert tokens['authorization'] == 'Basic YWRtaW46czNjcmV0'
+            return Mock()
+
+        await middleware.dispatch(request, mock_call_next)
+
+        assert request.state.auth_tokens['authorization'] == 'Basic YWRtaW46czNjcmV0'
+
+    @pytest.mark.asyncio
+    async def test_middleware_accepts_lowercase_basic_scheme(self):
+        """Test that the Basic scheme match is case-insensitive per RFC 7235"""
+        middleware = AuthTokenMiddleware(app=Mock())
+
+        request = Mock()
+        request.headers = {'Authorization': 'basic YWRtaW46czNjcmV0'}
+        request.cookies = {}
+        request.state = Mock()
+
+        async def mock_call_next(req):
+            assert get_request_auth_tokens()['authorization'] == 'basic YWRtaW46czNjcmV0'
+            return Mock()
+
+        await middleware.dispatch(request, mock_call_next)
+
+    @pytest.mark.asyncio
+    async def test_middleware_ignores_bearer_authorization_header(self):
+        """Test that a Bearer token is not forwarded to QRadar as a credential"""
+        middleware = AuthTokenMiddleware(app=Mock())
+
+        request = Mock()
+        request.headers = {'Authorization': 'Bearer mcp_transport_token'}
+        request.cookies = {}
+        request.state = Mock()
+
+        async def mock_call_next(req):
+            # No QRadar credentials present, so the context must stay empty
+            assert get_request_auth_tokens() is None
+            return Mock()
+
+        await middleware.dispatch(request, mock_call_next)
+
+        assert request.state.auth_tokens is None
+
+    @pytest.mark.asyncio
+    async def test_middleware_extracts_both_sec_and_basic(self):
+        """Test middleware records both credential types when both are sent"""
+        middleware = AuthTokenMiddleware(app=Mock())
+
+        request = Mock()
+        request.headers = {
+            'SEC': 'sec_token_123',
+            'Authorization': 'Basic YWRtaW46czNjcmV0'
+        }
+        request.cookies = {}
+        request.state = Mock()
+
+        async def mock_call_next(req):
+            tokens = get_request_auth_tokens()
+            assert tokens['sec_token'] == 'sec_token_123'
+            assert tokens['authorization'] == 'Basic YWRtaW46czNjcmV0'
+            return Mock()
+
+        await middleware.dispatch(request, mock_call_next)
