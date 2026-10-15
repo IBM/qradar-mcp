@@ -17,8 +17,10 @@
 Unit tests for QRadarRestClient configuration loading.
 """
 
+import os
 from unittest.mock import patch, mock_open
 from qradar_mcp.client.qradar_rest_client import load_config
+import qradar_mcp.client.qradar_rest_client as _mod
 
 
 class TestLoadConfig:
@@ -44,3 +46,16 @@ class TestLoadConfig:
         config = load_config()
 
         assert config is None
+
+    @patch('os.path.exists')
+    def test_load_config_resolves_to_project_root(self, mock_exists):
+        """load_config must look for config.json at the project root (two levels up from client/)."""
+        mock_exists.return_value = False
+
+        load_config()
+
+        checked_path = mock_exists.call_args[0][0]
+        client_dir = os.path.dirname(os.path.abspath(_mod.__file__))
+        project_root = os.path.dirname(client_dir)
+        expected_path = os.path.join(project_root, 'config.json')
+        assert checked_path == expected_path

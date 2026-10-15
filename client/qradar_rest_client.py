@@ -28,7 +28,7 @@ SEC_HEADER = 'SEC'
 
 def load_config():
     """Load configuration from config.json file."""
-    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'config.json')
+    config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.json')
     if os.path.exists(config_path):
         with open(config_path, 'r', encoding='utf-8') as f:
             return json.load(f)
