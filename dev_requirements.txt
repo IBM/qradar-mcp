@@ -102,7 +102,7 @@ importlib-metadata==8.7.1
     # via
     #   keyring
     #   opentelemetry-api
-iniconfig==2.3.0
+iniconfig==2.3.1
     # via pytest
 isort==8.0.1
     # via pylint
