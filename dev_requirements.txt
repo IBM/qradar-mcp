@@ -141,7 +141,7 @@ markupsafe==3.0.4
     #   werkzeug
 mccabe==0.7.0
     # via pylint
-mcp==1.28.1
+mcp==1.30.0
     # via fastmcp
 mdurl==0.1.2
     # via markdown-it-py
