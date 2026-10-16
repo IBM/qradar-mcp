@@ -207,7 +207,20 @@ For local development with Python without Docker:
    python server.py
    ```
 
-The server will start at `http://localhost:5000`. The port can be modified in server.py if port conflicts occur.
+The server will start at `http://localhost:5000` by default. The bind address and port are
+resolved in this order, so an unconfigured deployment keeps the historical `0.0.0.0:5000`:
+
+1. The `MCP_HOST` and `MCP_PORT` environment variables
+2. The `server.host` and `server.port` keys in `config.json`
+3. The defaults `0.0.0.0` and `5000`
+
+```bash
+# Via environment variables
+MCP_PORT=8080 python server.py
+
+# Or via config.json
+#   "server": { "host": "127.0.0.1", "port": 8080 }
+```
 
 ### Verify Deployment
 
@@ -248,6 +261,9 @@ Auth: Using authorized service token from config.json
 - `QRADAR_AUTH_TOKEN`: Authorized service token (alternative to SEC/CSRF)
 - `QRADAR_USERNAME`: Username for HTTP Basic authentication (used only when no token is set)
 - `QRADAR_PASSWORD`: Password for HTTP Basic authentication (required with `QRADAR_USERNAME`)
+- `MCP_HOST`: Bind address for the HTTP server (default `0.0.0.0`; overrides `server.host`)
+- `MCP_PORT`: Listen port for the HTTP server (default `5000`; overrides `server.port`)
+
 
 ### Authentication
 
@@ -277,6 +293,7 @@ credentials of its own is rejected exactly as before.
 
 HTTP Basic sends reusable credentials on every request, so prefer an authorized service
 token where one can be issued, and always enable TLS verification when using it.
+
 
 ### Configuration Files
 
