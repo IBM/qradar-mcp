@@ -16,7 +16,7 @@ anyio==4.15.1
     #   sse-starlette
     #   starlette
     #   watchfiles
-astroid==4.0.4
+astroid==4.3.4
     # via pylint
 attrs==26.1.0
     # via
