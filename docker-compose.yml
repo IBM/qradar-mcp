@@ -17,6 +17,11 @@ services:
       - QRADAR_HOST=${QRADAR_HOST}
 
       # Server settings
+      # MCP_HOST must stay 0.0.0.0 so the container is reachable through the
+      # published port mapping, even when a mounted config.json sets a
+      # loopback-only server.host for local development.
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=${MCP_PORT:-5000}
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - PYTHONUNBUFFERED=1
     volumes:

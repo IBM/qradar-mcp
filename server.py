@@ -363,4 +363,19 @@ register_resources()
 if __name__ == "__main__":
     # For local development
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+
+    # Bind address resolution, highest precedence first:
+    #   1. MCP_HOST / MCP_PORT environment variables
+    #   2. The "server" block in config.json
+    #   3. The historical defaults, so an unconfigured deployment is unchanged
+    server_config = (config or {}).get('server', {})
+    host = os.getenv('MCP_HOST') or server_config.get('host', '0.0.0.0')
+    port = int(os.getenv('MCP_PORT') or server_config.get('port', 5000))
+
+    log_structured(
+        "Starting QRadar MCP HTTP server",
+        level='INFO',
+        host=host,
+        port=port
+    )
+    uvicorn.run(app, host=host, port=port)
