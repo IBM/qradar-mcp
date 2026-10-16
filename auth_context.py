@@ -63,6 +63,9 @@ class AuthTokenMiddleware(BaseHTTPMiddleware):
     Supported headers:
     - SEC: QRadar security token (required for all API calls)
     - QRadarCSRF: CSRF token (required for user authentication)
+    - Authorization: HTTP Basic credentials, as an alternative to SEC/CSRF.
+      Only the Basic scheme is forwarded to QRadar; other schemes (e.g. Bearer
+      tokens used to authenticate to the MCP server itself) are ignored.
     """
 
     async def dispatch(self, request: Request, call_next):
@@ -80,6 +83,13 @@ class AuthTokenMiddleware(BaseHTTPMiddleware):
             auth_tokens['csrf_token'] = request.headers['QRadarCSRF']
         elif 'QRadarCSRF' in request.cookies:
             auth_tokens['csrf_token'] = request.cookies['QRadarCSRF']
+
+        # Extract HTTP Basic credentials (alternative to SEC/CSRF token auth).
+        # Deliberately scheme-restricted so an MCP transport Bearer token is
+        # never forwarded to QRadar as if it were a QRadar credential.
+        authorization = request.headers.get('Authorization')
+        if authorization and authorization.split(' ', 1)[0].lower() == 'basic':
+            auth_tokens['authorization'] = authorization
 
         # Store auth tokens in both request state and context variable
         request.state.auth_tokens = auth_tokens if auth_tokens else None
