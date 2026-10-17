@@ -33,7 +33,7 @@ blinker==1.9.0
     # via flask
 cachetools==7.0.6
     # via py-key-value-aio
-caio==0.9.25
+caio==0.12.9
     # via aiofile
 certifi==2026.4.22
     # via
