@@ -25,7 +25,7 @@ authlib==1.7.2
     # via fastmcp
 backports-tarfile==1.2.0
     # via jaraco-context
-beartype==0.22.9
+beartype==0.23.1
     # via py-key-value-aio
 cachetools==7.0.6
     # via py-key-value-aio
