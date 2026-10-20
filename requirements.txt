@@ -27,7 +27,7 @@ backports-tarfile==1.2.0
     # via jaraco-context
 beartype==0.22.9
     # via py-key-value-aio
-cachetools==7.0.6
+cachetools==7.2.4
     # via py-key-value-aio
 caio==0.9.25
     # via aiofile
