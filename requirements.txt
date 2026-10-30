@@ -35,7 +35,7 @@ certifi==2026.4.22
     # via
     #   httpcore
     #   httpx
-cffi==2.0.0
+cffi==2.1.1
     # via cryptography
 click==8.3.3
     # via uvicorn
