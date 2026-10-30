@@ -129,7 +129,7 @@ py-key-value-aio[filetree,keyring,memory]==0.4.6
     # via fastmcp
 pycparser==3.0
     # via cffi
-pydantic[email]==2.14.1
+pydantic[email]==2.14.2
     # via
     #   fastmcp
     #   mcp
