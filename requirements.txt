@@ -57,7 +57,7 @@ email-validator==2.3.0
     # via pydantic
 exceptiongroup==1.3.1
     # via fastmcp
-fastmcp==3.2.4
+fastmcp==3.4.10
     # via qradar-mcp (pyproject.toml)
 griffelib==2.0.2
     # via fastmcp
