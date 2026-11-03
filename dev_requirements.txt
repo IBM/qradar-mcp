@@ -6,7 +6,7 @@
 #
 aiofile==3.12.3
     # via py-key-value-aio
-annotated-types==0.7.0
+annotated-types==0.8.0
     # via pydantic
 anyio==4.15.1
     # via
@@ -16,39 +16,40 @@ anyio==4.15.1
     #   sse-starlette
     #   starlette
     #   watchfiles
-astroid==4.0.4
+astroid==4.3.4
     # via pylint
 attrs==26.1.0
     # via
     #   cyclopts
     #   jsonschema
+    #   jsonschema-path
     #   referencing
-authlib==1.7.2
+authlib==1.9.1
     # via fastmcp
 backports-tarfile==1.2.0
     # via jaraco-context
-beartype==0.22.9
+beartype==0.23.1
     # via py-key-value-aio
 blinker==1.9.0
     # via flask
-cachetools==7.0.6
+cachetools==7.2.4
     # via py-key-value-aio
-caio==0.9.25
+caio==0.12.10
     # via aiofile
-certifi==2026.4.22
+certifi==2026.10.19
     # via
     #   httpcore
     #   httpx
     #   requests
-cffi==2.0.0
+cffi==2.1.1
     # via cryptography
-charset-normalizer==3.4.7
+charset-normalizer==3.5.2
     # via requests
-click==8.3.3
+click==8.5.0
     # via
     #   flask
     #   uvicorn
-coverage[toml]==7.13.5
+coverage[toml]==7.17.0
     # via pytest-cov
 cryptography==50.0.2
     # via
@@ -61,11 +62,11 @@ cyclopts==4.11.0
     # via fastmcp
 dill==0.4.1
     # via pylint
-dnspython==2.8.0
+dnspython==2.9.0
     # via email-validator
 docstring-parser==0.18.0
     # via cyclopts
-docutils==0.22.4
+docutils==0.23
     # via rich-rst
 email-validator==2.3.0
     # via pydantic
@@ -77,7 +78,7 @@ fastmcp==3.2.4
     # via qradar-mcp (pyproject.toml)
 flask==3.1.3
     # via qpylib
-griffelib==2.0.2
+griffelib==2.4.1
     # via fastmcp
 h11==0.16.0
     # via
@@ -92,19 +93,17 @@ httpx==0.28.1
     #   qradar-mcp (pyproject.toml)
 httpx-sse==0.4.3
     # via mcp
-idna==3.18
+idna==3.20
     # via
     #   anyio
     #   email-validator
     #   httpx
     #   requests
-importlib-metadata==8.7.1
-    # via
-    #   keyring
-    #   opentelemetry-api
+importlib-metadata==9.1.0
+    # via keyring
 iniconfig==2.3.1
     # via pytest
-isort==8.0.1
+isort==9.0.2
     # via pylint
 itsdangerous==2.2.0
     # via flask
@@ -112,7 +111,7 @@ jaraco-classes==3.4.0
     # via keyring
 jaraco-context==6.1.2
     # via keyring
-jaraco-functools==4.4.0
+jaraco-functools==4.6.0
     # via keyring
 jeepney==0.9.0
     # via
@@ -120,19 +119,19 @@ jeepney==0.9.0
     #   secretstorage
 jinja2==3.1.6
     # via flask
-joserfc==1.7.5
+joserfc==1.7.7
     # via authlib
 jsonref==1.1.0
     # via fastmcp
 jsonschema==4.26.0
     # via mcp
-jsonschema-path==0.4.6
+jsonschema-path==0.5.0
     # via fastmcp
 jsonschema-specifications==2025.9.1
     # via jsonschema
 keyring==25.7.0
     # via py-key-value-aio
-markdown-it-py==4.0.0
+markdown-it-py==4.2.0
     # via rich
 markupsafe==3.0.4
     # via
@@ -145,31 +144,33 @@ mcp==1.28.1
     # via fastmcp
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==11.0.2
+more-itertools==11.2.1
     # via
     #   jaraco-classes
     #   jaraco-functools
-openapi-pydantic==0.5.1
+mypy-extensions==1.1.0
+    # via isort
+openapi-pydantic==0.6.0
     # via fastmcp
-opentelemetry-api==1.41.1
+opentelemetry-api==1.45.1
     # via fastmcp
-packaging==26.2
+packaging==26.3
     # via
     #   fastmcp
     #   pytest
-pathable==0.5.0
+pathable==0.6.0
     # via jsonschema-path
-platformdirs==4.9.6
+platformdirs==4.13.5
     # via
     #   fastmcp
     #   pylint
-pluggy==1.6.0
+pluggy==1.7.0
     # via
     #   pytest
     #   pytest-cov
 py-key-value-aio[filetree,keyring,memory]==0.4.6
     # via fastmcp
-pycparser==3.0
+pycparser==3.12
     # via cffi
 pycryptodome==3.23.0
     # via qpylib
@@ -180,11 +181,11 @@ pydantic[email]==2.14.1
     #   openapi-pydantic
     #   pydantic-settings
     #   qradar-mcp (pyproject.toml)
-pydantic-core==2.46.3
+pydantic-core==2.50.1
     # via pydantic
-pydantic-settings==2.14.2
+pydantic-settings==2.16.1
     # via mcp
-pygments==2.20.0
+pygments==2.21.0
     # via
     #   pytest
     #   rich
@@ -194,13 +195,13 @@ pylint==4.1.3
     # via qradar-mcp (pyproject.toml)
 pyperclip==1.11.0
     # via fastmcp
-pytest==9.0.3
+pytest==9.1.1
     # via
     #   pytest-asyncio
     #   pytest-cov
     #   pytest-xdist
     #   qradar-mcp (pyproject.toml)
-pytest-asyncio==1.3.0
+pytest-asyncio==1.4.0
     # via qradar-mcp (pyproject.toml)
 pytest-cov==7.1.0
     # via qradar-mcp (pyproject.toml)
@@ -223,7 +224,7 @@ referencing==0.37.0
     #   jsonschema
     #   jsonschema-path
     #   jsonschema-specifications
-requests==2.33.1
+requests==2.34.2
     # via qpylib
 rich==15.0.0
     # via
@@ -232,7 +233,7 @@ rich==15.0.0
     #   rich-rst
 rich-rst==1.3.2
     # via cyclopts
-rpds-py==0.30.0
+rpds-py==2026.9.1
     # via
     #   jsonschema
     #   referencing
@@ -240,11 +241,11 @@ secretstorage==3.5.0
     # via keyring
 sse-starlette==3.5.0
     # via mcp
-starlette==1.3.1
+starlette==1.9.0
     # via
     #   mcp
     #   sse-starlette
-tomlkit==0.14.0
+tomlkit==0.15.2
     # via pylint
 typing-extensions==4.16.0
     # via
@@ -255,6 +256,7 @@ typing-extensions==4.16.0
     #   py-key-value-aio
     #   pydantic
     #   pydantic-core
+    #   pydantic-settings
     #   pytest-asyncio
     #   referencing
     #   starlette
@@ -264,20 +266,20 @@ typing-inspection==0.4.4
     #   mcp
     #   pydantic
     #   pydantic-settings
-uncalled-for==0.3.1
+uncalled-for==0.4.1
     # via fastmcp
 urllib3==2.8.0
     # via requests
-uvicorn==0.46.0
+uvicorn==0.54.0
     # via
     #   fastmcp
     #   mcp
     #   qradar-mcp (pyproject.toml)
-watchfiles==1.1.1
+watchfiles==1.3.0
     # via fastmcp
 websockets==15.0.1
     # via fastmcp
 werkzeug==3.1.9
     # via flask
-zipp==3.23.1
+zipp==4.1.2
     # via importlib-metadata
