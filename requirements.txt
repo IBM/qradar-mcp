@@ -22,7 +22,7 @@ attrs==26.1.0
     #   jsonschema
     #   jsonschema-path
     #   referencing
-authlib==1.9.1
+authlib==1.9.5
     # via fastmcp
 backports-tarfile==1.2.0
     # via jaraco-context
