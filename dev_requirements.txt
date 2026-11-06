@@ -32,7 +32,7 @@ beartype==0.23.1
     # via py-key-value-aio
 blinker==1.9.0
     # via flask
-cachetools==7.2.4
+cachetools==7.3.0
     # via py-key-value-aio
 caio==0.12.10
     # via aiofile
