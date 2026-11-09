@@ -137,7 +137,7 @@ pydantic[email]==2.14.1
     #   qradar-mcp (pyproject.toml)
 pydantic-core==2.50.1
     # via pydantic
-pydantic-settings==2.16.1
+pydantic-settings==2.16.2
     # via mcp
 pygments==2.21.0
     # via rich
