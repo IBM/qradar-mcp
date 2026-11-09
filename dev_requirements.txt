@@ -181,7 +181,7 @@ pydantic[email]==2.14.1
     #   openapi-pydantic
     #   pydantic-settings
     #   qradar-mcp (pyproject.toml)
-pydantic-core==2.50.1
+pydantic-core==2.50.4
     # via pydantic
 pydantic-settings==2.16.2
     # via mcp
