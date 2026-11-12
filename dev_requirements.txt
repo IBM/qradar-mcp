@@ -49,7 +49,7 @@ click==8.5.0
     # via
     #   flask
     #   uvicorn
-coverage[toml]==7.17.0
+coverage[toml]==7.17.3
     # via pytest-cov
 cryptography==50.0.2
     # via
