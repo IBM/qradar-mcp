@@ -201,7 +201,7 @@ pytest==9.1.1
     #   pytest-cov
     #   pytest-xdist
     #   qradar-mcp (pyproject.toml)
-pytest-asyncio==1.4.0
+pytest-asyncio==1.5.0
     # via qradar-mcp (pyproject.toml)
 pytest-cov==7.1.0
     # via qradar-mcp (pyproject.toml)
