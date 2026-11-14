@@ -8,7 +8,7 @@ aiofile==3.12.3
     # via py-key-value-aio
 annotated-types==0.8.0
     # via pydantic
-anyio==4.15.1
+anyio==4.16.0
     # via
     #   httpx
     #   mcp
