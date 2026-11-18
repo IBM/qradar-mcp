@@ -152,7 +152,7 @@ mypy-extensions==1.1.0
     # via isort
 openapi-pydantic==0.6.0
     # via fastmcp
-opentelemetry-api==1.45.1
+opentelemetry-api==1.45.2
     # via fastmcp
 packaging==26.3
     # via
